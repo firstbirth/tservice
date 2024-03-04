@@ -1,0 +1,7 @@
+{
+	"name": "Truck Parts",
+	"integrations": {
+		"capacitor": {}
+	},
+	"type": "vue-vite"
+}

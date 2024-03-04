@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Truck Service</string>
+    <string name="title_activity_main">Truck Service</string>
+    <string name="package_name">kz.com.tsk.app</string>
+    <string name="custom_url_scheme">kz.com.tsk.app</string>
+</resources>
