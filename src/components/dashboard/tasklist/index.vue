@@ -7,7 +7,7 @@
 			<ion-list>
 				<ion-item-sliding v-for="(task, index) in tasks" :key="index">
 					<ion-item>
-						<ion-checkbox slot="start"></ion-checkbox>
+						<ion-checkbox slot="start" :aria-label="'Чекбокс для задачи ' + task.name"></ion-checkbox>
 						<ion-label>{{ task.important ? '🔥 ' : '' }} {{ task.name }}</ion-label>
 					</ion-item>
 
@@ -25,17 +25,15 @@
 					<ion-button @click="addTask()" color="dark" fill="clear">
 						<ion-icon slot="icon-only" :icon="addOutline" color="dark"></ion-icon>
 					</ion-button>
-
 				</ion-col>
 			</ion-row>
 		</ion-card-content>
 	</ion-card>
 </template>
-  
-<script lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonList, IonItem, IonCheckbox, IonLabel, IonButton, IonRow, IonCol, IonInput, IonIcon, IonItemSliding, IonItemOptions } from '@ionic/vue';
-import { addOutline } from 'ionicons/icons';
 
+<script lang="ts">
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonList, IonItem, IonCheckbox, IonLabel, IonButton, IonRow, IonCol, IonInput, IonIcon, IonItemSliding, IonItemOptions, IonItemOption } from '@ionic/vue';
+import { addOutline } from 'ionicons/icons';
 
 export default {
 	components: {
@@ -57,7 +55,8 @@ export default {
 		IonInput,
 		IonIcon,
 		IonItemSliding,
-		IonItemOptions
+		IonItemOptions,
+		IonItemOption,
 	},
 	data() {
 		return {

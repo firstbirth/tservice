@@ -1,8 +1,8 @@
 <template>
 	<ion-page>
-		<ion-header>
+		<ion-header :translucent="true">
 			<ion-toolbar>
-				<ion-buttons slot="secondary">
+				<ion-buttons slot="end">
 					<ion-button @click="openNotifications">
 						<ion-icon slot="icon-only" :ios="notificationsOutline" :md="notificationsOutline"></ion-icon>
 					</ion-button>
@@ -16,8 +16,8 @@
 		<ion-content :fullscreen="true">
 			<ion-header collapse="condense">
 				<ion-toolbar>
-					<ion-buttons slot="secondary">
-						<ion-button>
+					<ion-buttons slot="end">
+						<ion-button @click="openNotifications">
 							<ion-icon slot="icon-only" :ios="notificationsOutline" :md="notificationsOutline"></ion-icon>
 						</ion-button>
 						<ion-button @click="openSettings">

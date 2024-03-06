@@ -1,8 +1,8 @@
 // src/store/index.ts
 
 import { createStore } from "vuex";
+import createPersistedState from "vuex-persistedstate";
 
-// ваша логика хранилища Vuex
 
 const store = createStore({
 	state: {
@@ -14,30 +14,33 @@ const store = createStore({
 	mutations: {
 		toggleDarkMode(state) {
 			state.darkMode = !state.darkMode;
-			console.log("New state:", state.darkMode);
+			// console.log("New state: ", state.darkMode);
 		},
 
 		setToken(state, token: string) {
 			state.token = token;
-			console.log("Token set:", state.token);
+			// console.log("Token set: ", state.token);
 		},
 
 		setRole(state, role: string) {
 			state.role = role;
-			console.log("Role set:", state.role);
+			// console.log("Role set: ", state.role);
 		},
 
 		setUser(state, username: string) {
 			state.username = username;
-			console.log("Username set:", state.username);
+			// console.log("Username set: ", state.username);
 		},
 	},
 	actions: {
-		// ваши действия
+		// действия
 	},
 	modules: {
-		// ваши модули, если есть
+		// модули, если есть
 	},
+	plugins: [
+		createPersistedState()
+	],
 });
 
 export default store; // экспортируем созданный объект store

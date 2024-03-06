@@ -18,16 +18,17 @@
 				</ion-toolbar>
 			</ion-header>
 
-			<ion-list>
-				<ion-item lines="full">
-					<ion-label>
-						Тёмная тема
-					</ion-label>
-					<ion-toggle id="themeToggle" slot="end" aria-label="Тёмная тема"
-						:checked="!darkMode" @ionChange="toggleDarkMode"
-					></ion-toggle>
-				</ion-item>
-			</ion-list>
+			<div class="content">
+				<ion-list>
+					<ion-item lines="full">
+						<ion-label>
+							Тёмная тема
+						</ion-label>
+						<ion-toggle id="themeToggle" slot="end" aria-label="Тёмная тема" :checked="!darkMode"
+							@ionChange="toggleDarkMode"></ion-toggle>
+					</ion-item>
+				</ion-list>
+			</div>
 		</ion-content>
 	</ion-page>
 </template>
@@ -46,3 +47,15 @@ const toggleDarkMode = (event: any) => {
 	console.log(store.state.darkMode);
 }
 </script>
+
+
+<style scoped>
+.content {
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+
+	background-color: #fff;
+}
+</style>
