@@ -1,7 +1,7 @@
 // src/services/AuthService.ts
 
 import ApiService from "@/services/ApiService";
-import store from "@/store"; // импортируем объект store из файла хранилища Vuex
+import store from "@/store";
 
 // Проверка наличия токена авторизации
 export const isAuthenticated = (): boolean => {
@@ -79,7 +79,7 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 		const response = await ApiService.postData(
 			`/CheckUser/v3/?login=${login}&pincode=${pincode}`,
 			data,
-			service_token
+			token
 		);
 
 		console.log(response);
@@ -88,7 +88,9 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 		if (response.response == "OK") {
 			// Authentication successful
 			// push to vuex storage
-			store.commit("setUser", response.userName);
+			// console.log(response);
+			store.commit("setUserName", response.userName);
+			store.commit("setUserId", response.userId);
 			store.commit("setRole", response.role);
 			store.commit("setToken", token);
 			return true;
@@ -106,7 +108,8 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 // Function to log out the user
 export function logout(): void {
 	// Удаляем
-	store.commit("setUser", "");
+	store.commit("setUserName", "");
+	store.commit("setUserId", "");
 	store.commit("setRole", '');
 	store.commit("setToken", "");
 }

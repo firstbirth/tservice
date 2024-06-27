@@ -1,97 +1,79 @@
 <template>
 	<ion-card id="task-card">
-		<ion-card-header>
-			Мои задачи
-		</ion-card-header>
+		<ion-card-header> Мои задачи </ion-card-header>
 		<ion-card-content>
 			<ion-list>
-				<ion-item-sliding v-for="(task, index) in tasks" :key="index">
-					<ion-item>
-						<ion-checkbox slot="start" :aria-label="'Чекбокс для задачи ' + task.name"></ion-checkbox>
-						<ion-label>{{ task.important ? '🔥 ' : '' }} {{ task.name }}</ion-label>
+				<ion-item
+					:detail="true"
+					:button="true"
+				v-for="(task, index) in tasks" :key="index"
+					@click="
+								() => {
+									openTask(task.taskUID);
+									console.log(task.taskUID);
+								}
+							"
+				>
+						<ion-label>
+							{{ task.isImportant == "IMPORTANT" ? "🔥 " : "" }}
+								{{ task.description !== '' ? task.description : 'Без названия' }}
+						</ion-label>
 					</ion-item>
-
-					<ion-item-options>
-						<ion-item-option>Подробнее</ion-item-option>
-						<ion-item-option color="danger">Удалить</ion-item-option>
-					</ion-item-options>
-				</ion-item-sliding>
 			</ion-list>
-			<ion-row>
-				<ion-col size="10">
-					<ion-input v-model="newTask" placeholder="Название новой задачи"></ion-input>
-				</ion-col>
-				<ion-col size="2">
-					<ion-button @click="addTask()" color="dark" fill="clear">
-						<ion-icon slot="icon-only" :icon="addOutline" color="dark"></ion-icon>
-					</ion-button>
-				</ion-col>
-			</ion-row>
 		</ion-card-content>
 	</ion-card>
 </template>
 
-<script lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonList, IonItem, IonCheckbox, IonLabel, IonButton, IonRow, IonCol, IonInput, IonIcon, IonItemSliding, IonItemOptions, IonItemOption } from '@ionic/vue';
-import { addOutline } from 'ionicons/icons';
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import {
+	IonCard,
+	IonCardContent,
+	IonCardHeader,
+	IonCardSubtitle,
+	IonCardTitle,
+	IonChip,
+	IonCol,
+	IonRow,
+	IonPage,
+	IonHeader,
+	IonToolbar,
+	IonTitle,
+	IonContent,
+	IonList,
+	IonItem,
+	IonCheckbox,
+	IonLabel,
+	IonItemSliding,
+	IonItemOptions,
+	IonItemOption,
+} from "@ionic/vue";
+import { Task } from "@/interfaces/task.interface";
+import { TaskService } from "@/services/task.service";
+import store from "@/store";
 
-export default {
-	components: {
-		IonPage,
-		IonHeader,
-		IonToolbar,
-		IonTitle,
-		IonContent,
-		IonCard,
-		IonCardHeader,
-		IonCardContent,
-		IonList,
-		IonItem,
-		IonCheckbox,
-		IonLabel,
-		IonButton,
-		IonRow,
-		IonCol,
-		IonInput,
-		IonIcon,
-		IonItemSliding,
-		IonItemOptions,
-		IonItemOption,
-	},
-	data() {
-		return {
-			tasks: [
-				{ name: 'Задача 1', time: '10:00:00', important: true },
-				{ name: 'Задача 2', time: '12:30:00', important: false },
-				{ name: 'Задача 3', time: '15:45:00', important: false },
-			],
-			newTask: '',
-		};
-	},
+import { useRouter } from "vue-router";
+const router = useRouter();
 
-	setup() {
-		return { addOutline };
-	},
+const tasks = ref<Task[]>([]);
 
-	methods: {
-		addTask() {
-			if (this.newTask.trim() !== '') {
-				this.tasks.push({ name: this.newTask, time: this.getCurrentTime() });
-				this.newTask = '';
-			}
-		},
-		getCurrentTime() {
-			const now = new Date();
-			return `${this.padZero(now.getHours())}:${this.padZero(now.getMinutes())}:${this.padZero(now.getSeconds())}`;
-		},
-		padZero(num: number) {
-			return (num < 10 ? '0' : '') + num;
-		},
-		openMenu(index) {
-			// Логика для открытия меню для задачи с индексом index
-			// Здесь можно реализовать логику для отображения меню
-		},
-	},
+// Получаем задачи при монтировании компонента
+onMounted(async () => {
+	const userId = store.state.crutches ? 1 : store.getters["getUserId"];
+	tasks.value = await TaskService.getTasks(userId, 0, 5);
+
+	// TODO: Пока в задачах не возвращается поле performerId отключаем фильтр, потом вернем
+	// здесь нужно оставить только задачи для текущего пользователя, не важно админ он или нет
+	
+	// tasks.value = tasks.value.filter(
+	// 	(task) => task.performerId === store.getters["getUserId"]
+	// );
+
+	console.log(tasks.value);
+});
+
+const openTask = (taskUID: string) => {
+	router.push({ path: `/tasks/${taskUID}` });
 };
 </script>
 
@@ -140,5 +122,9 @@ export default {
 ion-item {
 	--ion-safe-area-right: 0;
 	--ion-safe-area-left: 0;
+}
+
+ion-list ion-item:last-child {
+	--inner-border-width: 0;
 }
 </style>

@@ -31,12 +31,12 @@
 			<div class="content">
 
 				<span class="greeting">
-					{{ greeting ?? 'Здравствуйте' }}, {{ username ? username : "" }}!
+					{{ greeting ?? 'Здравствуйте' }}, {{ username === '' ? "Пользователь" : username }}!
 				</span>
 
 				<CurrentBalance />
-				<TimeManager />
 				<TaskList />
+				<TimeManager />
 				<BalanceHistory />
 			</div>
 

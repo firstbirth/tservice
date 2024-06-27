@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "kz.com.tsk.app"
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "kz.com.tsk.app"
         minSdkVersion rootProject.ext.minSdkVersion

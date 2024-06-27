@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "@ionic/vue-router";
 import { RouteRecordRaw } from "vue-router";
 import Tabs from "../views/Tabs.vue";
 
-import { isAuthenticated, checkServer } from "@/services/AuthService";
+import { isAuthenticated } from "@/services/AuthService";
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -41,6 +41,34 @@ const routes: Array<RouteRecordRaw> = [
 			{
 				path: "add",
 				component: () => import("@/views/tasks/add/index.vue"),
+			},
+			{
+				path: "edit/:id",
+				component: () => import("@/views/tasks/edit/index.vue"),
+			},
+
+			{
+				path: ":id",
+				component: () => import("@/views/tasks/view/index.vue"),
+			},
+		],
+		meta: {
+			requiresAuth: true
+		}
+	},
+
+	{
+		path: "/users/",
+		component: Tabs,
+		children: [
+			{
+				path: "",
+				component: () => import("@/views/users/index.vue"),
+			},
+
+			{
+				path: ":id",
+				component: () => import("@/views/users/view/index.vue"),
 			},
 		],
 		meta: {

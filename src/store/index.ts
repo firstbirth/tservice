@@ -10,11 +10,17 @@ const store = createStore({
 		token: "",
 		username: "",
 		role: "",
+		userid: 0,
+		crutches: true,
 	},
 	mutations: {
 		toggleDarkMode(state) {
 			state.darkMode = !state.darkMode;
 			// console.log("New state: ", state.darkMode);
+		},
+
+		toggleCrutches(state) {
+			state.crutches = !state.crutches;
 		},
 
 		setToken(state, token: string) {
@@ -27,10 +33,27 @@ const store = createStore({
 			// console.log("Role set: ", state.role);
 		},
 
-		setUser(state, username: string) {
+		setUserName(state, username: string) {
 			state.username = username;
 			// console.log("Username set: ", state.username);
 		},
+
+		setUserId(state, id: number) {
+			state.userid = id;
+			// console.log("Username set: ", state.username);
+		},
+	},
+	getters: {
+		isAdmin(state) {
+			if (state.role === "Админы") {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		getUserId(state) {
+			return state.userid;
+		}
 	},
 	actions: {
 		// действия

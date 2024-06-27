@@ -4,6 +4,11 @@ import router from './router';
 
 import { IonicVue } from '@ionic/vue';
 
+import Vue3TouchEvents, {
+  type Vue3TouchEventsOptions,
+} from "vue3-touch-events";
+
+
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
 
@@ -26,16 +31,23 @@ import './theme/variables.css';
 /* Тёнмая тема: временно отключено */
 // import './theme/variables.dark-mode.css';
 
-// Импортируйте хранилище Vuex из файла store/index.ts
 import store from './store';
 
 const darkMode = localStorage.getItem('darkMode') === 'true';
 store.commit('toggleDarkMode', darkMode);
 
-const app = createApp(App)
-  .use(IonicVue)
-  .use(router)
-  .use(store);
+const app = createApp(App);
+
+app.use(IonicVue, {
+  mode: 'md',
+});
+
+app.use<Vue3TouchEventsOptions>(Vue3TouchEvents, {
+  disableClick: false
+  // any other global options...
+})
+app.use(router);
+app.use(store);
   
 router.isReady().then(() => {
   app.mount('#app');

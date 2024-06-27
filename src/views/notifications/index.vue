@@ -18,7 +18,7 @@
 				</ion-toolbar>
 			</ion-header>
 
-			<ExploreContainer name="Уведомления" />
+			<ExploreContainer name="🔔 Уведомления" />
 		</ion-content>
 	</ion-page>
 </template>

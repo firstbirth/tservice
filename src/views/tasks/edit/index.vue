@@ -5,15 +5,17 @@
 				<ion-buttons slot="start">
 					<ion-back-button default-href="/"></ion-back-button>
 				</ion-buttons>
-				<ion-title>Поставить задачу</ion-title>
+				<ion-title>Редактировать задачу</ion-title>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
-			<ion-list>
+			<ion-list :inset="false">
 				<ion-item>
 					<ion-checkbox
 						justify="space-between"
+						:checked="task_is_important"
 						v-model="task_is_important"
+						@ionClick="task_is_important = !task_is_important"
 						>🔥 Это срочная задача</ion-checkbox
 					>
 				</ion-item>
@@ -22,10 +24,15 @@
 					<ion-select
 						label="Исполнитель"
 						:interface-options="customAlertOptions"
-						@ionChange="selectUser"
+						:inputs="alertInputs"
 						label-placement="floating"
+						:value="task?.performer"
+						@ionChange="selectUser"
 					>
-						<ion-select-option v-for="user in users">
+						<ion-select-option
+							v-for="user in users"
+							:value="user.worker"
+						>
 							{{ user.worker }}
 						</ion-select-option>
 					</ion-select>
@@ -55,8 +62,9 @@
 		</ion-content>
 
 		<ion-footer>
-			<ion-button expand="block" color="primary" @click="submitTask()"
-				>Поставить задачу</ion-button
+			<ion-button expand="block" color="danger"
+				@click="updateTask()"
+				>Сохранить изменения</ion-button
 			>
 		</ion-footer>
 
@@ -64,6 +72,7 @@
 			<ion-datetime
 				id="datetime"
 				ref="datetime"
+				:value="dateDeadline"
 				:format-options="formatOptions"
 			>
 				<span slot="title">Дата выполнения задачи</span>
@@ -81,6 +90,7 @@
 			</ion-datetime>
 		</ion-modal>
 
+
 		<ion-modal
 			:is-open="successModalOpen"
 			@didDismiss="closeModal"
@@ -89,32 +99,15 @@
 		>
 			<div class="block ion-padding">
 				<div class="modal-content" v-if="!pending">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="64"
-						height="64"
-						fill="currentColor"
-						class="bi bi-calendar2-check"
-						viewBox="0 0 16 16"
-					>
-						<path
-							d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0"
-						/>
-						<path
-							d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"
-						/>
-						<path
-							d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5z"
-						/>
-					</svg>
-					<p>Задача поставлена</p>
-					<ion-button expand="block" @click="openTask(newTaskUID)"
+					<p>Задача обновлена</p>
+					<ion-button expand="block" @click="openTask(taskUID)"
 						>Перейти к задаче</ion-button
 					>
 				</div>
 				<div class="modal-content pending" v-else>Сохранение...</div>
 			</div>
 		</ion-modal>
+
 	</ion-page>
 </template>
 
@@ -132,7 +125,6 @@ import {
 	IonList,
 	IonLabel,
 	IonItem,
-	IonItemDivider,
 	IonTextarea,
 	IonCheckbox,
 	IonSelect,
@@ -144,9 +136,12 @@ import {
 import { ref, onMounted } from "vue";
 
 function isoToUnixTimestamp(dateString: string): number {
-	const date = new Date(dateString);
-	return Math.floor(date.getTime() / 1000);
+  const date = new Date(dateString);
+  const timestamp = Math.floor(date.getTime() / 1000);
+  console.log(timestamp);
+  return timestamp;
 }
+
 
 const customAlertOptions = {
 	header: "Исполнитель",
@@ -154,30 +149,62 @@ const customAlertOptions = {
 	translucent: true,
 };
 
+const alertInputs = [
+	{
+		placeholder: "Name",
+	},
+	{
+		placeholder: "Nickname (max 8 characters)",
+		attributes: {
+			maxlength: 8,
+		},
+	},
+	{
+		type: "number",
+		placeholder: "Age",
+		min: 1,
+		max: 100,
+	},
+	{
+		type: "textarea",
+		placeholder: "A little about yourself",
+	},
+];
+
 import { User } from "@/interfaces/user.interface";
 import { UserService } from "@/services/user.service";
-import { TaskService } from "@/services/task.service";
 
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
-
 import store from "@/store";
 import { useRouter } from "vue-router";
 
-const router = useRouter();
-
-const successModalOpen = ref(false);
-const newTaskUID = ref();
-const pending = ref(false);
+import { TaskService } from "@/services/task.service";
+import { Task } from "@/interfaces/task.interface";
 
 const users = ref<User[]>([]);
+const taskUID = ref();
+const router = useRouter();
+const task = ref<Task>();
+const dateDeadline = ref("");
 
-const task_is_important = ref(false);
-const task_deadline = ref(new Date(Date.now()).getTime() / 1000);
-const task_author = ref("");
-const task_author_id = ref(0);
-const task_description = ref("");
 const task_performer = ref("");
 const task_performer_id = ref(0);
+const task_description = ref("");
+
+const task_is_important = ref(false);
+
+const datetime = ref();
+const reset = () => datetime.value?.$el.reset();
+const cancel = () => datetime.value?.$el.cancel(true);
+
+const successModalOpen = ref(false);
+const pending = ref(false);
+
+const confirm = () => {
+	datetime.value?.$el.confirm(true);
+	console.log(datetime.value.$el.value);
+	dateDeadline.value = isoToUnixTimestamp(datetime.value.$el.value).toString();
+};
 
 onMounted(async () => {
 	// поставить задачу можно только активному пользователю
@@ -185,6 +212,7 @@ onMounted(async () => {
 
 	let _users = [...users.value];
 
+	// Администратор у нас INACTIVE поэтому если задача назначена ему, то его не будет в списке!
 	_users = [...users.value].filter((user) => {
 		return user.userStatus !== "ACTIVE";
 	});
@@ -194,9 +222,31 @@ onMounted(async () => {
 
 	users.value = _users;
 
-	task_author.value = store.state.username;
-	task_author_id.value = store.state.userid;
+	taskUID.value = router.currentRoute.value.params.id;
+
+	task.value = await TaskService.getTaskByUID(taskUID.value);
+	task.value = task.value[0];
+
+	task_description.value = task.value?.description;
+
+	dateDeadline.value = convertTimestamp(task.value.dateDeadline);
+
+	console.log(task.value);
+
+	task_is_important.value = (task?.isImportant === 'IMPORTANT') ? false : true;
+
+	console.log(task_is_important.value);
 });
+
+const closeModal = () => {
+	successModalOpen.value = false;
+	router.go(-1);
+};
+
+const openTask = (taskUID: string) => {
+	successModalOpen.value = false;
+	router.push(-1);
+};
 
 const selectUser = (event: any) => {
 	let user_idx = users.value.findIndex(
@@ -209,53 +259,16 @@ const selectUser = (event: any) => {
 	console.log(task_performer.value);
 };
 
-const datetime = ref();
-
-const reset = () => datetime.value?.$el.reset();
-const cancel = () => datetime.value?.$el.cancel(true);
-
-const confirm = () => {
-	datetime.value?.$el.confirm(true);
-	task_deadline.value = isoToUnixTimestamp(datetime.value.$el.value);
+const getLocalTimezoneOffset = (): number => {
+	return new Date().getTimezoneOffset() / -60;
 };
 
-const openTask = (taskUID: string) => {
-	router.push({ path: `/tasks/${taskUID}` });
-	successModalOpen.value = false;
-};
-
-const closeModal = () => {
-	successModalOpen.value = false;
-	router.go(-1);
-};
-
-const submitTask = async () => {
-	let _data = {
-		dateCreated: Math.round(new Date(Date.now()).getTime() / 1000),
-		dateDeadline: task_deadline.value,
-		author: store.state.crutches ? "Администратор" : task_author.value,
-		authorId: store.state.crutches ? 1 : task_author_id.value,
-		performer: task_performer.value,
-		performerId: task_performer_id.value,
-		description: task_description.value,
-		status: "NEW",
-		isImportant: task_is_important.value ? "IMPORTANT" : "ORDINARY",
-	};
-
-	console.log(_data);
-
-	await TaskService.createTask(_data).then((response) => {
-		if (response.success) {
-			// show success alert
-			Haptics.notification({ style: ImpactStyle.Light });
-			successModalOpen.value = true;
-			newTaskUID.value = response.taskUID;
-			// console.log(response.taskUID);
-		} else {
-			// show error alert
-			// router.push(-1);
-		}
-	});
+const convertTimestamp = (timestamp: number): string => {
+	const date = new Date(timestamp * 1000);
+	const timezoneOffset = getLocalTimezoneOffset();
+	const offsetInMilliseconds = timezoneOffset * 60 * 60 * 1000;
+	const adjustedDate = new Date(date.getTime() + offsetInMilliseconds);
+	return adjustedDate.toISOString().slice(0, -1); // Remove the 'Z' at the end to reflect local time
 };
 
 const formatOptions = {
@@ -270,21 +283,53 @@ const formatOptions = {
 		minute: "2-digit",
 	},
 };
+
+import { eventBus } from "@/eventBus.js";
+
+const updateTask = async () => {
+	let _data = {
+		taskUID: taskUID.value,
+		dateCreated: task.value?.dateCreated,
+		dateDeadline: dateDeadline.value.length > 10 ? isoToUnixTimestamp(dateDeadline.value) : dateDeadline.value	,
+		author: task.value?.author,
+		authorId: task.value?.authorId,
+		performer: task_performer.value,
+		performerId: task_performer_id.value,
+		description: task_description.value,
+		status: task.value?.status,
+		isImportant: task_is_important.value ? "IMPORTANT" : "ORDINARY",
+	};
+
+	console.log(_data);
+
+	await TaskService.updateTask(_data).then(async (response) => {
+		if (response.success) {
+			// show success alert
+			Haptics.notification({ style: ImpactStyle.Light });
+			successModalOpen.value = true;
+			console.log(response.taskUID);
+
+			let _updated_task = await TaskService.getTaskByUID(taskUID.value);
+			console.log(_updated_task);
+
+			eventBus.emit("taskUpdated");
+		} else {
+			// show error alert
+			// router.push(-1);
+		}
+	});
+};
 </script>
 
 <style scoped>
+ion-content {
+	--background: #fff;
+}
 ion-fab-button {
-	--border-radius: 50%;
+	--border-radius: 128px;
 	--box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3),
 		0px 1px 3px 1px rgba(0, 0, 0, 0.15);
 	--color: black;
-}
-ion-modal {
-	--height: auto;
-}
-
-.modal-content {
-	text-align: center;
 }
 
 ion-footer ion-button {
@@ -295,5 +340,9 @@ ion-footer ion-button {
 
 ion-list ion-item:last-child {
 	--inner-border-width: 0;
+}
+
+ion-modal {
+	--height: auto;
 }
 </style>
