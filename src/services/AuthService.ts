@@ -11,6 +11,8 @@ export const isAuthenticated = (): boolean => {
 export async function checkServer(): Promise<boolean> {
 	try {
 		// Construct the data object c	ontaining username and password
+		// Base64 encode TSK:qwe123 
+		
 		const token = "VFNLOnF3ZTEyMw==";
 
 		const response = await ApiService.getData(
@@ -79,7 +81,7 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 		const response = await ApiService.postData(
 			`/CheckUser/v3/?login=${login}&pincode=${pincode}`,
 			data,
-			token
+			service_token
 		);
 
 		console.log(response);

@@ -24,7 +24,6 @@
 					<ion-select
 						label="Исполнитель"
 						:interface-options="customAlertOptions"
-						:inputs="alertInputs"
 						label-placement="floating"
 						:value="task?.performer"
 						@ionChange="selectUser"
@@ -62,8 +61,7 @@
 		</ion-content>
 
 		<ion-footer>
-			<ion-button expand="block" color="danger"
-				@click="updateTask()"
+			<ion-button expand="block" color="danger" @click="updateTask()"
 				>Сохранить изменения</ion-button
 			>
 		</ion-footer>
@@ -90,7 +88,6 @@
 			</ion-datetime>
 		</ion-modal>
 
-
 		<ion-modal
 			:is-open="successModalOpen"
 			@didDismiss="closeModal"
@@ -107,7 +104,6 @@
 				<div class="modal-content pending" v-else>Сохранение...</div>
 			</div>
 		</ion-modal>
-
 	</ion-page>
 </template>
 
@@ -135,41 +131,18 @@ import {
 } from "@ionic/vue";
 import { ref, onMounted } from "vue";
 
-function isoToUnixTimestamp(dateString: string): number {
-  const date = new Date(dateString);
-  const timestamp = Math.floor(date.getTime() / 1000);
-  console.log(timestamp);
-  return timestamp;
-}
-
+const isoToUnixTimestamp = (dateString: string): number => {
+	const date = new Date(dateString);
+	const timestamp = Math.floor(date.getTime() / 1000);
+	console.log(timestamp);
+	return timestamp;
+};
 
 const customAlertOptions = {
 	header: "Исполнитель",
 	message: "Выберите ответственного из списка сотрудников",
 	translucent: true,
 };
-
-const alertInputs = [
-	{
-		placeholder: "Name",
-	},
-	{
-		placeholder: "Nickname (max 8 characters)",
-		attributes: {
-			maxlength: 8,
-		},
-	},
-	{
-		type: "number",
-		placeholder: "Age",
-		min: 1,
-		max: 100,
-	},
-	{
-		type: "textarea",
-		placeholder: "A little about yourself",
-	},
-];
 
 import { User } from "@/interfaces/user.interface";
 import { UserService } from "@/services/user.service";
@@ -203,7 +176,9 @@ const pending = ref(false);
 const confirm = () => {
 	datetime.value?.$el.confirm(true);
 	console.log(datetime.value.$el.value);
-	dateDeadline.value = isoToUnixTimestamp(datetime.value.$el.value).toString();
+	dateDeadline.value = isoToUnixTimestamp(
+		datetime.value.$el.value
+	).toString();
 };
 
 onMounted(async () => {
@@ -233,7 +208,7 @@ onMounted(async () => {
 
 	console.log(task.value);
 
-	task_is_important.value = (task?.isImportant === 'IMPORTANT') ? false : true;
+	task_is_important.value = task?.isImportant === "IMPORTANT" ? false : true;
 
 	console.log(task_is_important.value);
 });
@@ -290,7 +265,10 @@ const updateTask = async () => {
 	let _data = {
 		taskUID: taskUID.value,
 		dateCreated: task.value?.dateCreated,
-		dateDeadline: dateDeadline.value.length > 10 ? isoToUnixTimestamp(dateDeadline.value) : dateDeadline.value	,
+		dateDeadline:
+			dateDeadline.value.length > 10
+				? isoToUnixTimestamp(dateDeadline.value)
+				: dateDeadline.value,
 		author: task.value?.author,
 		authorId: task.value?.authorId,
 		performer: task_performer.value,

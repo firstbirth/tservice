@@ -18,6 +18,7 @@ export class TaskService {
 					userId: _userid.toString(),
 					start: _start.toString(),
 					limit: _limit.toString(),
+					selectionType: 'author',
 				},
 			});
 		} catch (error) {

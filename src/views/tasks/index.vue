@@ -4,79 +4,41 @@
 			<ion-toolbar>
 				<ion-buttons slot="secondary">
 					<ion-button @click="openNotifications">
-						<ion-icon
-							slot="icon-only"
-							:ios="notificationsOutline"
-							:md="notificationsOutline"
-						></ion-icon>
+						<ion-icon slot="icon-only" :ios="notificationsOutline" :md="notificationsOutline"></ion-icon>
 					</ion-button>
 					<ion-button @click="openSettings">
-						<ion-icon
-							slot="icon-only"
-							:ios="cogOutline"
-							:md="cogOutline"
-						></ion-icon>
+						<ion-icon slot="icon-only" :ios="cogOutline" :md="cogOutline"></ion-icon>
 					</ion-button>
 				</ion-buttons>
 				<ion-title>Задачи</ion-title>
 			</ion-toolbar>
 
 			<ion-toolbar v-if="!connectionError">
-				<ion-searchbar
-					inputmode="search"
-					class="custom"
-					placeholder="Поиск"
-					:debounce="350"
-					:animated="true"
-					@ionInput="handleInput($event)"
-				></ion-searchbar>
+				<ion-searchbar inputmode="search" class="custom" placeholder="Поиск" :debounce="350" :animated="true"
+					@ionInput="handleInput($event)"></ion-searchbar>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
-			<ion-refresher
-				slot="fixed"
-				:pull-factor="0.5"
-				:pull-min="100"
-				:pull-max="200"
-				@ionRefresh="handleRefresh($event)"
-			>
-				<ion-refresher-content
-					:pulling-icon="chevronDownCircleOutline"
-					pulling-text="Протяните для обновления"
-					refreshing-spinner="circles"
-					refreshing-text="Загрузка..."
-				>
+			<ion-refresher slot="fixed" :pull-factor="0.5" :pull-min="100" :pull-max="200"
+				@ionRefresh="handleRefresh($event)">
+				<ion-refresher-content :pulling-icon="chevronDownCircleOutline" pulling-text="Протяните для обновления"
+					refreshing-spinner="circles" refreshing-text="Загрузка...">
 				</ion-refresher-content>
 			</ion-refresher>
 
-			<ion-segment
-				v-if="!hideFilterTabs"
-				:scrollable="true"
-				value="all"
-				color="primary"
-				class="task_filter fadeInDown"
-			>
-				<ion-segment-button
-					value="important"
-					@click="filterTasksByImportant()"
-				>
+			<ion-segment v-if="!hideFilterTabs" :scrollable="true" value="all" color="primary"
+				class="task_filter fadeInDown">
+				<ion-segment-button value="important" @click="filterTasksByImportant()">
 					<ion-label>🔥</ion-label>
 				</ion-segment-button>
 
-				<ion-segment-button
-					value="default"
-					@click="
-						($event) => {
-							filterTasksByStatus($event, 'new');
-						}
-					"
-				>
+				<ion-segment-button value="default" @click="($event) => {
+					filterTasksByStatus($event, 'new');
+				}
+					">
 					<ion-label>Новые</ion-label>
 				</ion-segment-button>
-				<ion-segment-button
-					value="segment"
-					@click="filterTasksByStatus($event, 'done')"
-				>
+				<ion-segment-button value="segment" @click="filterTasksByStatus($event, 'done')">
 					<ion-label>Выполненные</ion-label>
 				</ion-segment-button>
 				<ion-segment-button value="buttons" @click="filterOverdue()">
@@ -88,25 +50,15 @@
 				<ion-spinner name="crescent"></ion-spinner>
 			</div>
 
-			<section
-				class="content"
-				v-touch:swipe.left="
-					() => {
-						console.log('swipe left');
-					}
-				"
-				v-touch:swipe.right="
-					() => {
-						console.log('swipe right');
-					}
-				"
-			>
-				<ion-card
-					v-for="task in results"
-					:key="task.taskUID"
-					:button="true"
-					@click="() => openTask(task.taskUID, task.dateDeadline)"
-				>
+			<section class="content" v-touch:swipe.left="() => {
+				console.log('swipe left');
+			}
+				" v-touch:swipe.right="() => {
+					console.log('swipe right');
+				}
+					">
+				<ion-card v-for="task in results" :key="task.taskUID" :button="true"
+					@click="() => openTask(task.taskUID, task.dateDeadline)">
 					<ion-card-header>
 						<ion-card-title>
 							<ion-row>
@@ -118,21 +70,14 @@
 									}}
 								</ion-col>
 								<ion-col size="auto" class="ion-no-padding">
-									<ion-chip
-										v-if="
-											task.dateDeadline < Date.now() / 1e3
-										"
-										color="danger"
-										class="ion-no-margin"
-									>
+									<ion-chip v-if="
+										task.dateDeadline < Date.now() / 1e3
+									" color="danger" class="ion-no-margin">
 										<ion-label> Просрочена </ion-label>
 									</ion-chip>
 
-									<ion-chip
-										v-if="task.isImportant === 'IMPORTANT'"
-										color="warning"
-										class="ion-no-margin ms-3"
-									>
+									<ion-chip v-if="task.isImportant === 'IMPORTANT'" color="warning"
+										class="ion-no-margin ms-3">
 										<ion-label>
 											{{
 												task.isImportant === "IMPORTANT"
@@ -145,68 +90,45 @@
 							</ion-row>
 						</ion-card-title>
 						<ion-card-subtitle v-if="task.dateDeadline">
-							<p class="ion-no-margin">{{ formatDateToLocaleString(task.dateCreated) }} &mdash; {{ formatDateToLocaleString(task.dateDeadline) }}</p> 
+							<p class="ion-no-margin">{{ formatDateToLocaleString(task.dateCreated) }} &mdash; {{
+								formatDateToLocaleString(task.dateDeadline) }}</p>
 						</ion-card-subtitle>
 					</ion-card-header>
 
 					<ion-card-content>
 						<ion-row>
-							<ion-col  class="ion-no-padding">
-								<ion-chip
-									:class="`ion-no-margin ${task.status.toLowerCase()}`"
-								>
+							<ion-col class="ion-no-padding">
+								<ion-chip :class="`ion-no-margin ${task.status.toLowerCase()}`">
 
-									<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											fill="currentColor"
-											class="bi bi-check-all"
-											viewBox="0 0 16 16"
-											v-if="task.status === 'DONE'"
-										>
-											<path
-												d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"
-											/>
-										</svg>
-										<ion-spinner v-if="task.status === 'NEW'" name="dots" ></ion-spinner>
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+										class="bi bi-check-all" viewBox="0 0 16 16" v-if="task.status === 'DONE'">
+										<path
+											d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z" />
+									</svg>
+									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+										class="bi bi-plus-square" viewBox="0 0 16 16" v-if="task.status === 'NEW'">
+										<path
+											d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6v7zm1.5.5A.5.5 0 0 1 1 13V6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-13z" />
+									</svg>
+									<!-- <ion-spinner v-if="task.status === 'NEW'" name="dots"></ion-spinner> -->
 									<ion-label style="margin-left: .25rem">
-										{{ task.status }}
+										{{ statusesRU[task.status] || 'Неизвестный статус' }}
 									</ion-label>
+
 								</ion-chip>
 							</ion-col>
 							<ion-col size="auto" class="ion-no-padding">
-								<ion-chip
-									class="ion-no-margin ion-no-padding"
-									color="black"
-									v-if="task.author"
-								>
+								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.author">
 									<ion-label>{{ task.author }}</ion-label>
 								</ion-chip>
-								<ion-chip
-									class="ion-no-margin ion-no-padding"
-									color="black"
-									v-if="task.performer"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="16"
-										height="33"
-										fill="currentColor"
-										class="chevron-divider"
-										viewBox="0 0 16 16"
-									>
-										<path
-											fill-rule="evenodd"
-											d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671"
-										/>
+								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.performer">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="33" fill="currentColor"
+										class="chevron-divider" viewBox="0 0 16 16">
+										<path fill-rule="evenodd"
+											d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
 									</svg>
 								</ion-chip>
-								<ion-chip
-									class="ion-no-margin ion-no-padding"
-									color="black"
-									v-if="task.performer"
-								>
+								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.performer">
 									<ion-label>{{ task.performer }}</ion-label>
 								</ion-chip>
 							</ion-col>
@@ -214,10 +136,7 @@
 					</ion-card-content>
 				</ion-card>
 
-				<div
-					class="block ion-padding"
-					v-if="!loading && results.length < 1"
-				>
+				<div class="block ion-padding" v-if="!loading && results.length < 1">
 					<div class="error-block-content">
 						<h2>Ничего не найдено</h2>
 						<p>
@@ -227,37 +146,20 @@
 					</div>
 				</div>
 
-				<div
-					class="block ion-padding"
-					v-if="allTasksLoaded && results.length > 0"
-				>
+				<div class="block ion-padding" v-if="allTasksLoaded && results.length > 0">
 					<div class="error-block-content">
 						<p>Все задачи загружены.</p>
 					</div>
 				</div>
 
-				<ion-infinite-scroll
-					ref="infiniteScroll"
-					@ionInfinite="loadMoreTasks"
-				>
-					<ion-infinite-scroll-content
-						loading-text="Загрузка..."
-						loading-spinner="circular"
-					></ion-infinite-scroll-content>
+				<ion-infinite-scroll ref="infiniteScroll" @ionInfinite="loadMoreTasks">
+					<ion-infinite-scroll-content loading-text="Загрузка..."
+						loading-spinner="circular"></ion-infinite-scroll-content>
 				</ion-infinite-scroll>
 			</section>
 
-			<ion-fab
-				slot="fixed"
-				vertical="bottom"
-				horizontal="end"
-				v-if="is_admin && !connectionError"
-			>
-				<ion-fab-button
-					color="primary"
-					shape="round"
-					@click="openNewTodo"
-				>
+			<ion-fab slot="fixed" vertical="bottom" horizontal="end" v-if="is_admin && !connectionError">
+				<ion-fab-button color="primary" shape="round" @click="openNewTodo">
 					<ion-icon :icon="add"></ion-icon>
 				</ion-fab-button>
 			</ion-fab>
@@ -271,9 +173,7 @@
 						Не удаётся получить список задач. Попробуйте повторить
 						попытку позже.
 					</p>
-					<ion-button expand="block" @click="fetchTasks"
-						>Обновить</ion-button
-					>
+					<ion-button expand="block" @click="fetchTasks">Обновить</ion-button>
 				</div>
 			</div>
 		</ion-footer>
@@ -283,14 +183,10 @@
 				<ion-segment-button value="all" @click="resetFilters()">
 					Все
 				</ion-segment-button>
-				<ion-segment-button
-					value="my"
-					@click="
-						() => {
-							filterOnlyForMe();
-						}
-					"
-				>
+				<ion-segment-button value="my" @click="() => {
+					filterOnlyForMe();
+				}
+					">
 					Мои
 				</ion-segment-button>
 			</ion-segment>
@@ -369,6 +265,11 @@ const is_admin = computed(() => store.getters["isAdmin"]);
 const start = ref<number>(0);
 const limit = ref<number>(5);
 const allTasksLoaded = ref<boolean>(false);
+
+const statusesRU = {
+	'NEW': 'НОВАЯ',
+	'DONE': 'ЗАВЕРШЕНА'
+}
 
 // TODO: Вохможно тут придётся реализовать переключатель фильтров
 const filters = ref({
@@ -529,8 +430,9 @@ const filterActual = () => {
 
 const filterOnlyForMe = () => {
 	loading.value = true;
+	console.log(store.getters["getUserId"])
 	results.value = tasks.value.filter(
-		(task) => task.performerId === store.getters["getUserId"]
+		(task) => task.authorId === store.getters["getUserId"]
 	);
 	loading.value = false;
 };
@@ -606,6 +508,7 @@ ion-searchbar.custom {
 
 	--box-shadow: none;
 }
+
 /* 
 ion-searchbar.ios.custom {
 	--cancel-button-color: #19422d;
@@ -659,6 +562,7 @@ ion-footer {
 	align-items: center;
 	justify-content: center;
 }
+
 .ms-3 {
 	margin-left: 0.5rem;
 }

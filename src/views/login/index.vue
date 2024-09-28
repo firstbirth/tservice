@@ -50,10 +50,12 @@ const handle_value = (e: any) => {
 }
 
 const loginHandler = async () => {
+
 	try {
 		// Call your login function passing phone number and PIN code
 		const success = await login(unmaskedPhoneNumber, pinCode.value);
 		if (success) {
+			console.log(success)
 			// Redirect user to dashboard or desired route upon successful login
 			router.push('/dashboard'); // Use the router instance to push to the desired route
 		} else {
@@ -127,6 +129,14 @@ ion-item {
 	--ion-safe-area-right: 0;
 	--ion-safe-area-left: 0;
 }
+
+ion-input {
+	--background: white;
+	--padding-start: 20px;
+	--padding-end: 20px;
+	text-align: left;
+}
+
 
 ion-item label {
 	padding-inline: 1rem !important;
