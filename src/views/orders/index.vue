@@ -121,6 +121,8 @@
 					</ion-row>
 				</ion-card-content>
 			</ion-card>
+
+			<TimeManager />
 		</ion-content>
 
 		<ion-footer v-if="connectionError">
@@ -168,6 +170,7 @@ import { computed, onMounted, ref } from "vue";
 import store from "@/store";
 import { ClientOrder } from "@/interfaces/client-order.interface";
 import { ClientOrderService } from "@/services/client-order.service";
+import TimeManager from "@/components/dashboard/timemanager/index.vue";
 
 const router = useRouter();
 
