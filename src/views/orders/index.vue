@@ -81,29 +81,60 @@
 					<ion-card-title>
 						<ion-row>
 							<ion-col class="ion-no-padding">
+								Заказ
 								{{ order.number ? order.number : "Без номера" }}
 								{{ order.client }}
 							</ion-col>
 						</ion-row>
 					</ion-card-title>
-					<ion-card-subtitle v-if="order.date">
-						<p class="ion-no-margin">
-							Дата: {{ formatDateToLocaleString(order.date) }}
-						</p>
-						<p class="ion-no-margin">
-							<b>Сумма: {{ order.totalSum }}</b>
-						</p>
-					</ion-card-subtitle>
+					<ion-card-subtitle v-if="order.date"> </ion-card-subtitle>
 				</ion-card-header>
 				<ion-card-content>
 					<ion-row>
 						<ion-col size="auto" class="ion-no-padding">
-							<ion-chip
-								class="ion-no-margin ion-no-padding"
-								color="black"
-								v-if="order.author"
-							>
-								<ion-label>Автор: {{ order.author }}</ion-label>
+							<ion-chip>
+								<span class="ion-chip__in">
+									<ion-icon
+										slot="icon-only"
+										:ios="calendarClearOutline"
+										:md="calendarClearOutline"
+									></ion-icon>
+									Дата:
+									{{ formatDateToLocaleString(order.date) }}
+								</span>
+							</ion-chip>
+							<ion-chip>
+								<span class="ion-chip__in">
+									<ion-icon
+										slot="icon-only"
+										:ios="cashOutline"
+										:md="cashOutline"
+									>
+									</ion-icon>
+									Сумма: {{ order.totalSum }}
+								</span>
+							</ion-chip>
+							<ion-chip v-if="order.author">
+								<span class="ion-chip__in">
+									<ion-icon
+										slot="icon-only"
+										:ios="personOutline"
+										:md="personOutline"
+									>
+									</ion-icon>
+									Автор: {{ order.author }}
+								</span>
+							</ion-chip>
+							<ion-chip v-if="order.author">
+								<span class="ion-chip__in">
+									<ion-icon
+										slot="icon-only"
+										:ios="analyticsOutline"
+										:md="analyticsOutline"
+									>
+									</ion-icon>
+									Выполненно: {{ order.fulfillment }} %
+								</span>
 							</ion-chip>
 							<p>
 								<ion-chip
@@ -120,6 +151,7 @@
 						</ion-col>
 					</ion-row>
 				</ion-card-content>
+				<ion-progress-bar :value="order.fulfillment"></ion-progress-bar>
 			</ion-card>
 
 			<TimeManager />
@@ -159,11 +191,16 @@ import {
 	IonButtons,
 	IonButton,
 	IonIcon,
+	IonProgressBar,
 } from "@ionic/vue";
 import {
 	cogOutline,
 	notificationsOutline,
 	chevronDownCircleOutline,
+	calendarClearOutline,
+	cashOutline,
+	personOutline,
+	analyticsOutline,
 } from "ionicons/icons";
 import { useRouter } from "vue-router";
 import { computed, onMounted, ref } from "vue";
@@ -183,6 +220,8 @@ const openNotifications = () => {
 
 const is_admin = computed(() => store.getters["isAdmin"]);
 const loading = ref<boolean>(true);
+const start = ref<number>(0);
+const limit = ref<number>(3);
 const connectionError = ref<boolean>(false);
 const allTasksLoaded = ref<boolean>(false);
 
@@ -190,7 +229,11 @@ const clientOrders = ref<ClientOrder[]>([]);
 
 const fetchClientOrders = async () => {
 	try {
-		const data = await ClientOrderService.getClientOrders(1);
+		const data = await ClientOrderService.getClientOrders(
+			1,
+			start.value,
+			limit.value
+		);
 
 		if (data.length !== 0) {
 			clientOrders.value.push(...data);
@@ -240,5 +283,18 @@ const formatDateToLocaleString = (
 <style>
 ion-segment {
 	--background: #fff;
+}
+.ion-chip__in {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+ion-progress-bar::part(track) {
+	background: #dedede;
+}
+
+ion-progress-bar::part(progress) {
+	background: var(--ion-color-danger);
 }
 </style>

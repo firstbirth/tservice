@@ -1,8 +1,8 @@
 import { HttpService, API_URL } from "./http.service";
 // import store from "@/store";
 
-export class ClientOrderService {
-	static async getClientOrders(
+export class WorkOrderService {
+	static async GetWorkOrders(
 		_userid: number = 1,
 		_start: number = 0,
 		_limit: number = 10
@@ -11,7 +11,7 @@ export class ClientOrderService {
 
 		try {
 			order_data = await HttpService.post({
-				url: `${API_URL}/GetClientOrders/v3/`,
+				url: `${API_URL}/GetWorkOrders/v4/`,
 				params: {
 					userId: _userid.toString(),
 					start: _start.toString(),
