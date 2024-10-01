@@ -226,7 +226,7 @@ import {
 	IonFooter,
 	IonSpinner,
 } from "@ionic/vue";
-import { cogOutline, notificationsOutline, add } from "ionicons/icons";
+import { cogOutline, notificationsOutline, add, key } from "ionicons/icons";
 
 import { useRouter } from "vue-router";
 
@@ -266,7 +266,7 @@ const start = ref<number>(0);
 const limit = ref<number>(5);
 const allTasksLoaded = ref<boolean>(false);
 
-const statusesRU = {
+const statusesRU: { [key: string]: string } = {
 	'NEW': 'НОВАЯ',
 	'DONE': 'ЗАВЕРШЕНА'
 }

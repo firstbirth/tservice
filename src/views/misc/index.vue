@@ -68,6 +68,18 @@
 						></ion-icon>
 						<ion-label>Настройки</ion-label>
 					</ion-item>
+					<ion-item
+						:button="true"
+						class="ion-no-padding"
+						@click="openSearch"
+						:detail="true"
+					>
+						<ion-icon
+							:ios="searchCircleOutline"
+							:md="searchCircleOutline"
+						></ion-icon>
+						<ion-label>Поиск товаров</ion-label>
+					</ion-item>
 				</ion-list>
 
 				<ion-button
@@ -100,13 +112,16 @@ import {
 	IonIcon,
 	alertController,
 } from "@ionic/vue";
-import { cogOutline, notificationsOutline } from "ionicons/icons";
+import { cogOutline, notificationsOutline, searchCircleOutline } from "ionicons/icons";
 import { useRouter } from "vue-router";
 import store from "@/store";
 
 
 const router = useRouter();
 
+const openSearch = () => {
+	router.push("/search");
+};
 const openSettings = () => {
 	router.push("/settings");
 };

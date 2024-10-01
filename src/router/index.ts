@@ -159,6 +159,36 @@ const routes: Array<RouteRecordRaw> = [
 			requiresAuth: false
 		}
 	},
+	{
+		path: "/search/",
+		component: Tabs,
+		children: [
+			{
+				path: "",
+				component: () => import("@/views/search/index.vue"),
+			},
+			{
+				path: ":vendorcode",
+				component: () => import("@/views/search/view/index.vue"),
+			},
+		],
+		meta: {
+			requiresAuth: false
+		}
+	},
+	{
+		path: "/workorders/",
+		component: Tabs,
+		children: [
+			{
+				path: "",
+				component: () => import("@/views/workOrders/index.vue"),
+			},
+		],
+		meta: {
+			requiresAuth: false
+		}
+	},
 ];
 
 const router = createRouter({
