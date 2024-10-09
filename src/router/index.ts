@@ -173,7 +173,7 @@ const routes: Array<RouteRecordRaw> = [
 			},
 		],
 		meta: {
-			requiresAuth: false
+			requiresAuth: true
 		}
 	},
 	{
@@ -184,9 +184,21 @@ const routes: Array<RouteRecordRaw> = [
 				path: "",
 				component: () => import("@/views/workOrders/index.vue"),
 			},
+			{
+				path: ":workorderid/details",
+				component: () => import("@/views/workOrders/details/index.vue"),
+			},
+			{
+				path: ":workorderid/products",
+				component: () => import("@/views/workOrders/products/index.vue"),
+			},
+			{
+				path: ":workorderid/services",
+				component: () => import("@/views/workOrders/services/index.vue"),
+			},
 		],
 		meta: {
-			requiresAuth: false
+			requiresAuth: true
 		}
 	},
 ];

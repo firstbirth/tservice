@@ -57,8 +57,8 @@
                                     }}
                                 </ion-col>
                                 <ion-row class="ion-align-items-start ion-flex-direction-column">
-                                    <ion-col class="ion-no-padding" size="auto">
-                                        <ion-chip color="primary" class="ion-no-margin">
+                                    <ion-col class="ion-no-padding" size="auto" >
+                                        <ion-chip color="primary" class="ion-no-margin" style="margin-right: 0.5rem">
                                             <ion-label>Код вендора: {{ product.vendorCode }}</ion-label>
                                         </ion-chip>
                                     </ion-col>

@@ -25,35 +25,20 @@
                     refreshing-spinner="circles" refreshing-text="Загрузка...">
                 </ion-refresher-content>
             </ion-refresher>
-
-            <ion-segment v-if="!hideFilterTabs" :scrollable="true" value="all" color="primary"
-                class="task_filter fadeInDown">
-                <ion-segment-button value="draft" @click="filterTasksByImportant()">
-                    <ion-label>Черновик</ion-label>
-                </ion-segment-button>
-
-                <ion-segment-button value="declined" @click="($event) => {
-                    filterTasksByStatus($event, 'new');
-                }
-                    ">
-                    <ion-label>Отказ клиента</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="in_queue" @click="filterTasksByStatus($event, 'CLOSED')">
-                    <ion-label>В очереди</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="in_work" @click="filterOverdue()">
-                    <ion-label>В работе</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="paused" @click="filterOverdue()">
-                    <ion-label>Приостановлен</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="ended" @click="filterOverdue()">
-                    <ion-label>Завершён</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="closed" @click="filterOverdue()">
-                    <ion-label>Закрыт</ion-label>
-                </ion-segment-button>
-            </ion-segment>
+            <ion-col>
+                <ion-title>
+                    <ion-select aria-label="statuses" placeholder="Выберите статусы" interface="action-sheet"
+                        :multiple="true" @ionChange="handleChange($event)">
+                        <ion-select-option value="INWORK">В работе</ion-select-option>
+                        <ion-select-option value="CLOSED">Закрыт</ion-select-option>
+                        <ion-select-option value="DRAFT">Черновик</ion-select-option>
+                        <ion-select-option value="QUEUE">В очереди</ion-select-option>
+                        <ion-select-option value="COMPLETED">Завершен</ion-select-option>
+                        <ion-select-option value="SUSPENDED">Приостановлен</ion-select-option>
+                        <ion-select-option value="DENY">Отказ клиента</ion-select-option>
+                    </ion-select>
+                </ion-title>
+            </ion-col>
 
             <div v-if="loading" class="spinner-container">
                 <ion-spinner name="crescent"></ion-spinner>
@@ -66,7 +51,8 @@
                     console.log('swipe right');
                 }
                     ">
-                <ion-card v-for="workorder in results" :key="workorder.workOrderId" :button="true">
+                <ion-card v-for="workorder in results" :key="workorder.workOrderId" :button="true"
+                @click="() => openWorkOrder(workorder.workOrderId)">
                     <ion-card-header>
                         <ion-card-title>
                             <ion-row>
@@ -79,8 +65,8 @@
                                     }}
                                 </ion-col>
                                 <ion-col size="auto" class="ion-no-padding">
-                                    <ion-chip color="tertiary" class="ion-no-margin">
-                                        <ion-label>Статус: {{ workorder.status }}</ion-label>
+                                    <ion-chip :color="statusColors[workorder.status]" class="ion-no-margin">
+                                        <ion-label>Статус: {{ workOrdersRU[workorder.status] }}</ion-label>
                                     </ion-chip>
                                 </ion-col>
                             </ion-row>
@@ -90,7 +76,7 @@
                     <ion-card-content>
                         <ion-row>
                             <ion-col class="ion-no-padding">
-                                <ion-chip :class="`ion-no-margin ${workorder.number}`">
+                                <ion-chip :class="`ion-no-margin ${workorder.number}`" style="margin-right: 0.5rem;">
 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                         class="bi bi-briefcase" viewBox="0 0 16 16">
@@ -104,7 +90,7 @@
 
                                 </ion-chip>
 
-                                <ion-chip :class="`ion-no-margin ${workorder.number}`">
+                                <ion-chip :class="`ion-no-margin ${workorder.number}`" style="margin-right: 0.5rem;">
 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                         class="bi bi-calendar" viewBox="0 0 16 16">
@@ -134,7 +120,7 @@
 
                             <ion-col size="auto" class="ion-no-padding">
                                 <ion-chip class="ion-no-margin ion-no-padding" color="black">
-                                    <ion-label>Описание: {{ workorder.comment }}</ion-label>
+                                    <ion-label>Описание: {{ workorder.comment ? workorder.comment : 'не указано' }}</ion-label>
                                 </ion-chip>
                             </ion-col>
                         </ion-row>
@@ -254,18 +240,39 @@ const openNewTodo = () => {
     router.push("/tasks/add");
 };
 
+const openWorkOrder = (workOrderId: number) => {
+    router.push({
+        path: `/workorders/${workOrderId}/details`
+    });
+};
+
 import { TaskService } from "@/services/task.service";
 import { Task } from "@/interfaces/task.interface";
 import { WorkOrder } from "@/interfaces/workorder.interface";
 import store from "@/store";
 
 const connectionError = ref(false);
-let filter1 = false;
+
+var isActiveFilter = <boolean>false;
+
 const hideFilterTabs = ref(false);
 
 const tasks = ref<Task[]>([]);
 const results = ref<WorkOrder[]>([]);
 const loading = ref(true);
+
+let selectedStatuses = [];
+
+const statusColors: { [key: string]: string } = {
+    'DRAFT': 'light',
+    'DECLINED': 'danger',
+    'QUEUE': 'warning',
+    'INWORK': 'primary',
+    'SUSPENDED': 'medium',
+    'COMPLETED': 'success',
+    'CLOSED': 'danger',
+}
+
 
 const workOrders = ref<WorkOrder[]>([]);
 
@@ -280,6 +287,16 @@ const statusesRU: { [key: string]: string } = {
     'DONE': 'ЗАВЕРШЕНА'
 }
 
+const workOrdersRU: { [key: string]: string } = {
+    'DRAFT': 'Черновик',
+    'DENY': 'Отказ клиента',
+    'QUEUE': 'В очереди',
+    'INWORK': 'В работе',
+    'SUSPENDED': 'Приостановлен',
+    'COMPLETED': 'Завершен',
+    'CLOSED': 'Закрыт',
+}
+
 // TODO: Вохможно тут придётся реализовать переключатель фильтров
 const filters = ref({
     my: false,
@@ -292,6 +309,18 @@ const filters = ref({
 
 function sortTasksByDateCreated(tasks: Task[]): Task[] {
     return tasks.sort((a, b) => a.dateCreated - b.dateCreated);
+}
+
+function handleChange($event) {
+    selectedStatuses = event.detail.value;
+
+    if (selectedStatuses.length == 0) {
+        fetchTasks();
+    }
+    else {
+        filterTasksByStatusINWORK();
+    }
+    console.log('Selected statuses array:', selectedStatuses);
 }
 
 const fetchTasks = async () => {
@@ -339,6 +368,7 @@ const handleRefresh = (event: CustomEvent) => {
         results.value = [];
         start.value = 0;
         fetchTasks();
+        loading.value = false;
         event.target.complete();
     }, 150);
 };
@@ -353,9 +383,9 @@ const loadMoreTasks = async (event: CustomEvent) => {
         // сделать для каждого фильтра и переименовать сами функции. 
         // Логика - при начальной загрузке получаем все заказ наряды,
         // При нажатии на кнопку фильтра В ОЧЕРЕДИ фильтруются текущие заказ-наряды и приходящие новые через пагинацию
-        if (filter1){
+        if (isActiveFilter) {
 
-            filterTasksByStatus();
+            filterTasksByStatusINWORK();
         }
         (event.target as HTMLIonInfiniteScrollElement).complete();
     }
@@ -408,13 +438,16 @@ const handleInput = (event: { target: { value: string } }) => {
     loading.value = false;
 };
 
-const filterTasksByStatus = () => {
+const filterTasksByStatusINWORK = () => {
     loading.value = true;
     // const query = event.target.value.toLowerCase();
-    results.value = workOrders.value.filter(
-        (workOrders) => workOrders.status === 'CLOSED'
+    results.value = workOrders.value.filter((order) =>
+        selectedStatuses.includes(order.status)
     );
-    filter1 = true;
+
+    // Включение флага фильтра для фильтрации новых заказ-нарядов при бесконечном скролле
+    isActiveFilter = true;
+
     loading.value = false;
 };
 
