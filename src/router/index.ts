@@ -98,6 +98,18 @@ const routes: Array<RouteRecordRaw> = [
 				path: "",
 				component: () => import("@/views/orders/index.vue"),
 			},
+			{
+				path: "all",
+				component: () => import("@/views/orders/all/index.vue"),
+			},
+			{
+				path: ":clientorderid/details",
+				component: () => import("@/views/orders/details/index.vue"),
+			},
+			{
+				path: ":clientorderid/products",
+				component: () => import("@/views/orders/products/index.vue"),
+			},
 		],
 		meta: {
 			requiresAuth: true

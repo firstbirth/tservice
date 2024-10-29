@@ -10,7 +10,7 @@
                         <ion-icon slot="icon-only" :ios="cogOutline" :md="cogOutline"></ion-icon>
                     </ion-button>
                 </ion-buttons>
-                <ion-title>Заказ-наряды</ion-title>
+                <ion-title>Все заказы</ion-title>
             </ion-toolbar>
 
             <ion-toolbar v-if="!connectionError">
@@ -25,20 +25,6 @@
                     refreshing-spinner="circles" refreshing-text="Загрузка...">
                 </ion-refresher-content>
             </ion-refresher>
-            <ion-col>
-                <ion-title>
-                    <ion-select aria-label="statuses" placeholder="Выберите статусы" interface="action-sheet"
-                        :multiple="true" @ionChange="handleChange($event)">
-                        <ion-select-option value="INWORK">В работе</ion-select-option>
-                        <ion-select-option value="CLOSED">Закрыт</ion-select-option>
-                        <ion-select-option value="DRAFT">Черновик</ion-select-option>
-                        <ion-select-option value="QUEUE">В очереди</ion-select-option>
-                        <ion-select-option value="COMPLETED">Завершен</ion-select-option>
-                        <ion-select-option value="SUSPENDED">Приостановлен</ion-select-option>
-                        <ion-select-option value="DENY">Отказ клиента</ion-select-option>
-                    </ion-select>
-                </ion-title>
-            </ion-col>
 
             <div v-if="loading" class="spinner-container">
                 <ion-spinner name="crescent"></ion-spinner>
@@ -51,23 +37,18 @@
                     console.log('swipe right');
                 }
                     ">
-                <ion-card v-for="workorder in results" :key="workorder.workOrderId" :button="true"
-                    @click="() => openWorkOrder(workorder.workOrderId)">
+                <ion-card v-for="order in results" :key="order.clientOrderId" :button="true"
+                    @click="() => openClientOrder(order.clientOrderId)">
                     <ion-card-header>
                         <ion-card-title>
                             <ion-row>
                                 <ion-col class="ion-no-padding">
-                                    Заказ-наряд:
+                                    Заказ:
                                     {{
-                                        workorder.number
-                                            ? workorder.number
+                                        order.number
+                                            ? order.number
                                             : "Номер не указан"
                                     }}
-                                </ion-col>
-                                <ion-col size="auto" class="ion-no-padding">
-                                    <ion-chip :color="statusColors[workorder.status]" class="ion-no-margin">
-                                        <ion-label>Статус: {{ workOrdersRU[workorder.status] }}</ion-label>
-                                    </ion-chip>
                                 </ion-col>
                             </ion-row>
                         </ion-card-title>
@@ -76,7 +57,7 @@
                     <ion-card-content>
                         <ion-row>
                             <ion-col class="ion-no-padding">
-                                <ion-chip :class="`ion-no-margin ${workorder.number}`" style="margin-right: 0.5rem;">
+                                <ion-chip :class="`ion-no-margin ${order.number}`" style="margin-right: 0.5rem;">
 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                         class="bi bi-briefcase" viewBox="0 0 16 16">
@@ -84,12 +65,12 @@
                                             d="M6.5 1A1.5 1.5 0 0 0 5 2.5V3H1.5A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 14.5 3H11v-.5A1.5 1.5 0 0 0 9.5 1h-3zm0 1h3a.5.5 0 0 1 .5.5V3H6v-.5a.5.5 0 0 1 .5-.5zm1.886 6.914L15 7.151V12.5a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5V7.15l6.614 1.764a1.5 1.5 0 0 0 .772 0zM1.5 4h13a.5.5 0 0 1 .5.5v1.616L8.129 7.948a.5.5 0 0 1-.258 0L1 6.116V4.5a.5.5 0 0 1 .5-.5z" />
                                     </svg>
                                     <ion-label style="margin-left: .25rem">
-                                        Заказчик: {{ workorder.client }}
+                                        Клиент: {{ order.client }}
                                     </ion-label>
 
                                 </ion-chip>
 
-                                <ion-chip :class="`ion-no-margin ${workorder.number}`" style="margin-right: 0.5rem;">
+                                <ion-chip :class="`ion-no-margin ${order.number}`" style="margin-right: 0.5rem;">
 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                         class="bi bi-calendar" viewBox="0 0 16 16">
@@ -97,11 +78,11 @@
                                             d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
                                     </svg>
                                     <ion-label style="margin-left: .25rem">
-                                        Дата: {{ formatDateToLocaleString(workorder.date) }}
+                                        Дата: {{ formatDateToLocaleString(order.date) }}
                                     </ion-label>
 
                                 </ion-chip>
-                                <ion-chip :class="`ion-no-margin ${workorder.number}`">
+                                <ion-chip :class="`ion-no-margin ${order.number}`">
 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                         class="bi bi-gear-fill" viewBox="0 0 16 16">
@@ -109,7 +90,7 @@
                                             d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
                                     </svg>
                                     <ion-label style="margin-left: .25rem">
-                                        Авто: {{ workorder.auto }}
+                                        Ответственный: {{ order.author }}
                                     </ion-label>
 
                                 </ion-chip>
@@ -117,7 +98,7 @@
 
                             <ion-col size="auto" class="ion-no-padding">
                                 <ion-chip class="ion-no-margin ion-no-padding" color="black">
-                                    <ion-label>Описание: {{ workorder.comment ? workorder.comment : 'не указано'
+                                    <ion-label>Комментарий: {{ order.comment ? order.comment : 'не указан'
                                         }}</ion-label>
                                 </ion-chip>
                             </ion-col>
@@ -137,7 +118,7 @@
 
                 <div class="block ion-padding" v-if="allWorkOrdersLoaded && results.length > 0">
                     <div class="error-block-content">
-                        <p>Все заказ-наряды загружены.</p>
+                        <p>Все заказ-нарячды загружены.</p>
                     </div>
                 </div>
 
@@ -147,6 +128,11 @@
                 </ion-infinite-scroll>
             </section>
 
+            <ion-fab slot="fixed" vertical="bottom" horizontal="end" v-if="is_admin && !connectionError">
+                <ion-fab-button color="primary" shape="round" @click="this.content.scrollToTop(400);">
+                    <ion-icon :icon="add"></ion-icon>
+                </ion-fab-button>
+            </ion-fab>
         </ion-content>
 
         <ion-footer v-if="connectionError">
@@ -154,10 +140,10 @@
                 <div class="error-block-content">
                     <p>Проблемы с соединением</p>
                     <p>
-                        Не удаётся получить список заказ-нарядов. Попробуйте повторить
+                        Не удаётся получить список задач. Попробуйте повторить
                         попытку позже.
                     </p>
-                    <ion-button expand="block" @click="fetchTasks">Обновить</ion-button>
+                    <ion-button expand="block" @click="fetchOrders">Обновить</ion-button>
                 </div>
             </div>
         </ion-footer>
@@ -230,18 +216,17 @@ const openNewTodo = () => {
     router.push("/tasks/add");
 };
 
-const openWorkOrder = (workOrderId: number) => {
+const openClientOrder = (clienOrderId: number) => {
     router.push({
-        path: `/workorders/${workOrderId}/details`
+        path: `/orders/${clienOrderId}/details`
     });
 };
-
+import { HttpService, API_URL } from "../../../services/http.service";
 import { Task } from "@/interfaces/task.interface";
-import { WorkOrder } from "@/interfaces/workorder.interface";
-import { HttpService, API_URL } from "../../services/http.service";
+import { ClientOrder } from "@/interfaces/client-order.interface";
 
 import store from "@/store";
-import { WorkOrderService } from "@/services/work-order.service";
+import { ClientOrderService } from "@/services/client-order.service";
 
 const connectionError = ref(false);
 
@@ -250,7 +235,7 @@ var isActiveFilter = <boolean>false;
 const hideFilterTabs = ref(false);
 
 const tasks = ref<Task[]>([]);
-const results = ref<WorkOrder[]>([]);
+const results = ref<ClientOrder[]>([]);
 const loading = ref(true);
 
 let selectedStatuses: string[] = [];
@@ -265,7 +250,7 @@ const statusColors: { [key: string]: string } = {
     'CLOSED': 'danger',
 }
 
-const workOrders = ref<WorkOrder[]>([]);
+const allOrders = ref<ClientOrder[]>([]);
 
 const is_admin = computed(() => store.getters["isAdmin"]);
 
@@ -302,7 +287,7 @@ function handleChange($event) {
     selectedStatuses = event.detail.value;
 
     if (selectedStatuses.length == 0) {
-        fetchTasks();
+        fetchOrders();
     }
     else {
         filterTasksByStates();
@@ -310,7 +295,7 @@ function handleChange($event) {
     console.log('Selected statuses array:', selectedStatuses);
 }
 
-const fetchTasks = async () => {
+const fetchOrders = async () => {
     loading.value = true;
 
     // workOrders.value = [];
@@ -318,7 +303,7 @@ const fetchTasks = async () => {
     let task_data;
 
     try {
-        task_data = await WorkOrderService.GetWorkOrders();
+        task_data = await ClientOrderService.getClientOrders();
     } catch (error) {
         console.error("Error:", error);
     }
@@ -327,19 +312,19 @@ const fetchTasks = async () => {
     }
 
     if (task_data && task_data.length > 0) {
-        workOrders.value.push(...task_data);
+        allOrders.value.push(...task_data);
         results.value.push(...task_data);
 
         // console.log("Products:", workOrders.value);
         start.value += limit.value;
 
         loading.value = false;
-        return workOrders;
+        return allOrders;
     };
 };
 
 onMounted(() => {
-    fetchTasks();
+    fetchOrders();
 });
 
 const handleRefresh = (event: CustomEvent) => {
@@ -347,7 +332,7 @@ const handleRefresh = (event: CustomEvent) => {
         tasks.value = [];
         results.value = [];
         start.value = 0;
-        fetchTasks();
+        fetchOrders();
         loading.value = false;
         event.target.complete();
     }, 150);
@@ -358,7 +343,7 @@ const loadMoreTasks = async (event: CustomEvent) => {
         (event.target as HTMLIonInfiniteScrollElement).complete();
         (event.target as HTMLIonInfiniteScrollElement).disabled = true;
     } else {
-        await fetchTasks();
+        await fetchOrders();
 
         if (isActiveFilter) {
 
@@ -391,12 +376,16 @@ const formatDateToLocaleString = (
 const handleInput = async (event: { target: { value: string } }) => {
     loading.value = true;
 
-    let order_data;
+    products.value = [];
+    console.log(event.target.value)
 
-    // console.log("Event target value", event.target.value)
+    let task_data;
 
     try {
-        order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, limit.value, event.target.value)
+        task_data = await HttpService.post({
+            url: `${API_URL}/SearchProduct/v3/`,
+            params: { searchString: event.target.value },
+        });
     } catch (error) {
         console.error("Error:", error);
     }
@@ -404,27 +393,22 @@ const handleInput = async (event: { target: { value: string } }) => {
         loading.value = false;
     }
 
-    // console.log("TASK DATA:", order_data)
+    if (task_data && task_data.data.length > 0) {
+        products.value.push(...task_data.data);
 
-    if (order_data && order_data.length > 0) {
-        workOrders.value = []
-        results.value = []
+        console.log("Products:", products.value);
 
-        workOrders.value.push(...order_data);
-        results.value.push(...order_data);
 
-        // console.log("Products:", workOrders.value);
-        start.value += limit.value;
-
+        // console.log(task_data?.data);
         loading.value = false;
-        return workOrders;
+        return products;
     };
 }
 
 const filterTasksByStates = () => {
     loading.value = true;
     // const query = event.target.value.toLowerCase();
-    results.value = workOrders.value.filter((order) =>
+    results.value = allOrders.value.filter((order) =>
         selectedStatuses.includes(order.status)
     );
 

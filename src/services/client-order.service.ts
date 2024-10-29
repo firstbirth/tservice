@@ -24,4 +24,45 @@ export class ClientOrderService {
 
 		return order_data?.data;
 	}
+
+	static async getClientOrderByOID(
+		_userid: number = 1,
+		_clientOrderOID: string
+	) {
+		let order_data;
+
+		try {
+			order_data = await HttpService.post({
+				url: `${API_URL}/GetClientOrderByOID/v3/`,
+				params: {
+					userId: _userid.toString(),
+					clientOrderOid: _clientOrderOID
+				},
+			});
+		} catch (error) {
+			console.error("Error:", error);
+		}
+
+		return order_data?.data;
+	}
+	static async getClientOrderProductsByOID(
+		_userid: number = 1,
+		_clientOrderOID: string
+	) {
+		let order_data;
+
+		try {
+			order_data = await HttpService.post({
+				url: `${API_URL}/GetClientOrderProductsByOID/v3/`,
+				params: {
+					userId: _userid.toString(),
+					clientOrderOid: _clientOrderOID
+				},
+			});
+		} catch (error) {
+			console.error("Error:", error);
+		}
+
+		return order_data?.data;
+	}
 }
