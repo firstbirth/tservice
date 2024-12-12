@@ -57,7 +57,7 @@ const loginHandler = async () => {
 		if (success) {
 			console.log(success)
 			// Redirect user to dashboard or desired route upon successful login
-			router.push('/dashboard'); // Use the router instance to push to the desired route
+			await router.push('/dashboard'); // Use the router instance to push to the desired route
 		} else {
 			// Handle invalid login credentials
 			console.error('Invalid credentials');

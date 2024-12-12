@@ -10,13 +10,13 @@
         </ion-header>
 
         <ion-content :fullscreen="true">
-            <ion-segment :scrollable="true" value="all" color="primary" class="task_filter fadeInDown">
-                <ion-segment-button value="important" type="button"
-                    @click="router.push(`/orders/${clientOrderOID}/details`)">
+            <ion-segment :scrollable="true" value="products" color="primary" class="task_filter fadeInDown">
+                <ion-segment-button value="details" type="button"
+                    @click="router.push(`/orders/${clientOrderOID}/${orderAuthorId}/details`)">
                     <ion-label>Детали</ion-label>
                 </ion-segment-button>
 
-                <ion-segment-button value="default" @click="router.push(`/orders/${clientOrderOID}/products`)">
+                <ion-segment-button value="products" @click="router.push(`/orders/${clientOrderOID}/${orderAuthorId}/products`)">
                     <ion-label>Товары</ion-label>
                 </ion-segment-button>
 
@@ -34,30 +34,26 @@
 
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Товар</h2>
-                            <p>{{
-                                product?.product
-                                    ? product?.product
-                                    : "Не указан"
-                            }}</p>
+                            <h2>Товар: {{
+									product?.product
+										? product?.product
+										: "Не указан"
+								}}</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Количество</h2>
-                            <p>{{ product.quantity }} шт.</p>
+                            <h2>Количество: {{ product.quantity }} шт.</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Комментарий</h2>
-                            <p>{{ product?.comment }}</p>
+                            <h2>Комментарий: {{ product?.comment }}</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Место хранения</h2>
-                            <p>{{ product?.storagePlace }}</p>
+                            <h2>Место хранения: {{ product?.storagePlace }}</h2>
                         </ion-label>
                     </ion-item>
 
@@ -159,7 +155,7 @@ const attachments = ref([
 let pathParts = window.location.pathname.split('/');
 let clientOrderOID = pathParts[pathParts.length - 2];
 
-
+let orderAuthorId = pathParts[pathParts.length - 1];
 
 const workOrdersRU: { [key: string]: string } = {
     'DRAFT': 'Черновик',
@@ -176,7 +172,8 @@ const fetchTaskData = async (orderOID: string) => {
     isDetails = true;
 
     try {
-        task_data = await ClientOrderService.getClientOrderProductsByOID(1, orderOID);
+        task_data = await ClientOrderService.getClientOrderProductsByOID(store.state.userid, orderOID);
+		console.log("TASK DATA: ", task_data);
     } catch (error) {
         console.error("Error:", error);
     }
@@ -217,7 +214,7 @@ const fetchWorkOrderProducts = async (workOrderId: string) => {
 
 
     }
-    else { isEmpty = true }
+    // else { isEmpty = true }
 };
 
 eventBus.on("taskUpdated", () => {
@@ -227,7 +224,8 @@ eventBus.on("taskUpdated", () => {
 
 onMounted(async () => {
     pathParts = window.location.pathname.split('/');
-    clientOrderOID = pathParts[pathParts.length - 2];
+    clientOrderOID = pathParts[pathParts.length - 3];
+	orderAuthorId = pathParts[pathParts.length - 2];
     let isEmpty = false;
     fetchWorkOrderProducts(clientOrderOID);
 

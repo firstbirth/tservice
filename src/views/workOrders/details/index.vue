@@ -30,96 +30,81 @@
                     <ion-list :inset="false">
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Номер заказ-наряда</h2>
-                                <p>{{
-                                    workOrder?.number
-                                        ? workOrder?.number
-                                        : "Не указан"
-                                }}</p>
+                                <h2>Номер заказ-наряда: {{
+										workOrder?.number
+											? workOrder?.number
+											: "Не указан"
+									}}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Дата</h2>
-                                <p>{{ formatDateToLocaleString(workOrder?.date) }}</p>
+                                <h2>Дата: {{ formatDateToLocaleString(workOrder?.date) }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Клиент</h2>
-                                <p>{{ workOrder?.client }}</p>
+                                <h2>Клиент: {{ workOrder?.client }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Сумма</h2>
-                                <p>{{ workOrder?.totalSum }} тг.</p>
+                                <h2>Сумма: {{ workOrder?.totalSum }} тг.</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Автомобиль</h2>
-                                <p>{{ workOrder?.auto }}</p>
+                                <h2>Автомобиль: {{ workOrder?.auto }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Заметки по автомобилю</h2>
-                                <p>{{ workOrder?.automobileNotes ? workOrder?.automobileNotes : "Не указаны" }}</p>
+                                <h2>Заметки по автомобилю: {{ workOrder?.automobileNotes ? workOrder?.automobileNotes : "Не указаны" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Комментарий</h2>
-                                <p>{{ workOrder?.comment }}</p>
+                                <h2>Комментарий: {{ workOrder?.comment }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Статус</h2>
-                                <p>{{ workOrdersRU[workOrder?.status] }}</p>
+                                <h2>Статус: {{ workOrdersRU[workOrder?.status] }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Неисправности со слов клиента</h2>
-                                <p>{{ workOrder?.faultByClient ? workOrder.faultByClient : "Не указаны" }}</p>
+                                <h2>Неисправности со слов клиента: {{ workOrder?.faultByClient ? workOrder.faultByClient : "Не указаны" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Неисправность</h2>
-                                <p>{{ workOrder?.faultByInspection ? workOrder?.faultByInspection : "Не указана" }}</p>
+                                <h2>Неисправность: {{ workOrder?.faultByInspection ? workOrder?.faultByInspection : "Не указана" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Особые отметки</h2>
-                                <p>{{ workOrder?.specialNotes ? workOrder?.specialNotes : "Не указаны" }}</p>
+                                <h2>Особые отметки: {{ workOrder?.specialNotes ? workOrder?.specialNotes : "Не указаны" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Рекомендации клиенту</h2>
-                                <p>{{ workOrder?.recommendations ? workOrder?.recommendations : "Не указаны" }}</p>
+                                <h2>Рекомендации клиенту: {{ workOrder?.recommendations ? workOrder?.recommendations : "Не указаны" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Автор</h2>
-                                <p>{{ workOrder?.author ? workOrder?.author : "Не указан" }}</p>
+                                <h2>Автор: {{ workOrder?.author ? workOrder?.author : "Не указан" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Мастер</h2>
-                                <p>{{ workOrder?.master ? workOrder?.master : "Не указан" }}</p>
+                                <h2>Мастер: {{ workOrder?.master ? workOrder?.master : "Не указан" }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Инженер</h2>
-                                <p>{{ workOrder?.engineer ? workOrder?.engineer : "Не указан" }}</p>
+                                <h2>Инженер: {{ workOrder?.engineer ? workOrder?.engineer : "Не указан" }}</h2>
                             </ion-label>
                         </ion-item>
                     </ion-list>

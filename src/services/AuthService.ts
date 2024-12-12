@@ -6,27 +6,27 @@ import store from "@/store";
 // Проверка наличия токена авторизации
 export const isAuthenticated = (): boolean => {
 	return !!store.state.token && store.state.token !== "";
-}
+};
 
 export async function checkServer(): Promise<boolean> {
 	try {
 		// Construct the data object c	ontaining username and password
 		// Base64 encode TSK:qwe123 
-		
+
 		const token = "VFNLOnF3ZTEyMw==";
 
 		const response = await ApiService.getData(
 			`/CheckServerStatus/v3/`,
-			token
+			token,
 		);
 
 		// Check if the login was successful based on the response
 		if (response.success) {
-			console.log('it works');
+			console.log("it works");
 			return true;
 		} else {
 			// Authentication failed
-			console.log('something went wrong');
+			console.log("something went wrong");
 			return false;
 		}
 	} catch (error) {
@@ -36,16 +36,16 @@ export async function checkServer(): Promise<boolean> {
 	}
 }
 
-export async function getServiceToken (): Promise<string> {
+export async function getServiceToken(): Promise<string> {
 	try {
 		// fetch the token from an external url
 		const response = await ApiService.getData(
 			`/GetServiceToken/v3/`,
-			''
-		)
+			"",
+		);
 
 		// return the token
-		return response.data
+		return response.data;
 	} catch (error) {
 		throw error;
 	}
@@ -62,7 +62,7 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 
 	// Преобразуем байтовый массив в строку Base64
 	const token = btoa(
-		String.fromCharCode.apply(null, Array.from(encodedString))
+		String.fromCharCode.apply(null, Array.from(encodedString)),
 	);
 
 	const service_token = "VFNLOnF3ZTEyMw==";
@@ -81,20 +81,29 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 		const response = await ApiService.postData(
 			`/CheckUser/v3/?login=${login}&pincode=${pincode}`,
 			data,
-			service_token
+			service_token,
 		);
 
 		console.log(response);
+		// console.log('we are here');
 
 		// Check if the login was successful based on the response
 		if (response.response == "OK") {
-			// Authentication successful
-			// push to vuex storage
-			// console.log(response);
+			console.log("Setting user data in Vuex store");
+
 			store.commit("setUserName", response.userName);
 			store.commit("setUserId", response.userId);
 			store.commit("setRole", response.role);
-			store.commit("setToken", token);
+			store.commit("setToken", response.accessId);
+			store.commit("setPinCode", pincode);
+			store.commit("setLogin", response.login);
+			// Проверим, что данные обновились в store
+			console.log("User Name:", store.state.username);
+			console.log("User ID:", store.state.userid);
+			console.log("User Role:", store.state.role);
+			console.log("Token:", store.state.token);
+			console.log("PinCode:", pincode);
+			console.log("UserLogin:", store.state.login);
 			return true;
 		} else {
 			// Authentication failed
@@ -107,11 +116,29 @@ export async function login(login: string, pincode: string): Promise<boolean> {
 	}
 }
 
+export async function renewToken(login: string, pincode: string): Promise<boolean> {
+
+	const service_token = "VFNLOnF3ZTEyMw==";
+
+	const response = await ApiService.postData(
+		`/CheckUser/v3/?login=${login}&pincode=${pincode}`,
+		{},
+		service_token,
+	);
+
+	console.log("RENEW TOKEN RESPONSER:", response);
+	if (response.response == "OK") {
+		store.commit("setToken", response.accessId);
+		return true;
+	} else return false;
+}
+
+
 // Function to log out the user
 export function logout(): void {
 	// Удаляем
 	store.commit("setUserName", "");
 	store.commit("setUserId", "");
-	store.commit("setRole", '');
+	store.commit("setRole", "");
 	store.commit("setToken", "");
 }

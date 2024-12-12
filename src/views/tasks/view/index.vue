@@ -5,60 +5,42 @@
 				<ion-buttons slot="start">
 					<ion-back-button default-href="/"></ion-back-button>
 				</ion-buttons>
-				<ion-title>{{ title !== '' ? title : "Без названия" }}</ion-title>
+				<ion-title>{{ title !== "" ? title : "Без названия" }}</ion-title>
 			</ion-toolbar>
 		</ion-header>
 
 		<ion-content :fullscreen="true">
 			<section class="content">
 				<ion-card v-for="task in tasks">
-					<img
-						v-if="task.image"
-						alt="Silhouette of mountains"
-						src="https://ionicframework.com/docs/img/demos/card-media.png"
-					/>
+					<img v-if="task.image" alt="Silhouette of mountains"
+						 src="https://ionicframework.com/docs/img/demos/card-media.png" />
 					<ion-card-header>
 						<ion-card-title>
 							<ion-row>
 								<ion-col class="ion-no-padding">
 
-									<ion-chip
-									:class="`ion-no-margin ${task.status.toLowerCase()}`"
-								>
+									<ion-chip :class="`ion-no-margin ${task.status.toLowerCase()}`">
 
-									<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											fill="currentColor"
-											class="bi bi-check-all"
-											viewBox="0 0 16 16"
-											v-if="task.status === 'DONE'"
-										>
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+											 fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"
+											 v-if="task.status === 'DONE'">
 											<path
-												d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"
-											/>
+												d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z" />
 										</svg>
-										<ion-spinner v-if="task.status === 'NEW'" name="dots" ></ion-spinner>
-									<ion-label style="margin-left: .25rem">
-										{{ task.status }}
-									</ion-label>
-								</ion-chip>
+										<ion-spinner v-if="task.status === 'NEW'" name="dots"></ion-spinner>
+										<ion-label style="margin-left: .25rem">
+											{{ statusesRU[task.status] }}
+										</ion-label>
+									</ion-chip>
 								</ion-col>
 								<ion-col size="auto" class="ion-no-padding">
-									<ion-chip
-										v-if="dateDeadline < Date.now() / 1e3"
-										color="danger"
-										class="ion-no-margin"
-									>
-										<ion-label> Просрочена </ion-label>
+									<ion-chip v-if="dateDeadline < Date.now() / 1e3" color="danger"
+											  class="ion-no-margin">
+										<ion-label> Просрочена</ion-label>
 									</ion-chip>
 
-									<ion-chip
-										v-if="task.isImportant === 'IMPORTANT'"
-										color="warning"
-										class="ion-no-margin ms-3"
-									>
+									<ion-chip v-if="task.isImportant === 'IMPORTANT'" color="warning"
+											  class="ion-no-margin ms-3">
 										<ion-label>
 											{{
 												task.isImportant === "IMPORTANT"
@@ -73,10 +55,10 @@
 								<ion-col class="ion-no-padding">
 									<h1>
 										{{
-										task.description
-											? task.description
-											: "Без названия"
-									}}	
+											task.description
+												? task.description
+												: "Без названия"
+										}}
 									</h1>
 								</ion-col>
 							</ion-row>
@@ -87,40 +69,56 @@
 					</ion-card-header>
 					<ion-card-content class="ion-no-padding">
 						<ion-list :inset="false">
-							<ion-item
-								:button="true"
-								:detail="true"
-								@click="() => openUser(task.authorId)"
-							>
+							<ion-item :button="true" :detail="false" @click="() => openUser(task.authorId)">
 								<ion-label>
 									<h2>Постановщик</h2>
 									<p>{{ task.author }}</p>
 								</ion-label>
 							</ion-item>
-
-							<ion-item
-								v-if="task.performerId === ''"
-								:button="true"
-								:detail="false"
-								@click="() => editTask(task.taskUID)"
-							>
+							<ion-item v-if="task.responsibles" :button="true"
+									  :detail="task.responsibles.length >0 ? true : false"
+									  @click="() => openResponsibles(task.taskUID)">
 								<ion-label>
-									<h2>Исполнитель</h2>
-									<p style="color: #b1000d">
-										{{
-											task.performerId === ""
-												? "⚠️ Исполнитель не указан"
-												: task.performer
-										}}
+									<h2>Ответственные</h2>
+									<p>
+										<!-- Проверяем, есть ли исполнители -->
+										<span v-if="task.responsibles.length === 0">
+											Не указаны
+										</span>
+										<span v-else>
+											<!-- Выводим список всех исполнителей -->
+											<span v-for="(responsible, index) in task.responsibles"
+												  :key="responsible.responsibleId">
+												{{ responsible.responsible }}<span
+												v-if="index < task.responsibles.length - 1">, </span>
+											</span>
+										</span>
 									</p>
 								</ion-label>
+
 							</ion-item>
-							<ion-item
-								v-else
-								:button="true"
-								:detail="true"
-								@click="() => openUser(task.performerId)"
-							>
+							<ion-item v-if="task.performers" :button="true" :detail="false"
+									  @click="() => editTask(task.taskUID)">
+								<ion-label>
+									<h2>Исполнители</h2>
+									<p>
+										<!-- Проверяем, есть ли исполнители -->
+										<span v-if="task.performers.length === 0">
+											⚠️ Исполнители не указаны
+										</span>
+										<span v-else>
+											<!-- Выводим список всех исполнителей -->
+											<span v-for="(performer, index) in task.performers"
+												  :key="performer.performerId">
+												{{ performer.performer }}<span
+												v-if="index < task.performers.length - 1">, </span>
+											</span>
+										</span>
+									</p>
+								</ion-label>
+
+							</ion-item>
+							<ion-item v-else :button="true" :detail="true" @click="() => openUser(task.performerId)">
 								<ion-label>
 									<h2>Исполнитель</h2>
 									<p>
@@ -139,7 +137,7 @@
 									<p>
 										{{
 											formatDateToLocaleString(
-												task.dateCreated
+												task.dateCreated,
 											)
 										}}
 									</p>
@@ -152,20 +150,17 @@
 									<p>
 										{{
 											formatDateToLocaleString(
-												dateDeadline
+												dateDeadline,
 											)
 										}}
 									</p>
 								</ion-label>
 							</ion-item>
 
-							<ion-item
-								v-if="
-									timeToDeadline !== false &&
-									timeToDeadline !== ''
-								"
-								class="fadeIn"
-							>
+							<ion-item v-if="
+								timeToDeadline !== false &&
+								timeToDeadline !== ''
+							" class="fadeIn">
 								<ion-label>
 									<h2>Осталось</h2>
 									<p>{{ timeToDeadline }}</p>
@@ -178,26 +173,46 @@
 									<p>Текст</p>
 								</ion-label>
 							</ion-item> -->
+							<ion-item v-if="task.responsibles" :button="true"
+									  :detail="task_comments.length >0"
+									  @click="() => openComments(task.taskUID)">
+								<ion-label>
+									<h2>Комментарии</h2>
+									<p>
+										<!-- Проверяем, есть ли комментарии -->
+										<span v-if="task_comments.length === 0">
+											Не указаны
+										</span>
+										<span v-else>
+											<!-- Выводим список всех комментариев -->
+											<span v-for="comment in task_comments">
+												<div>{{ comment.author }} - {{ comment.comment }}</div>
+
+											</span>
+										</span>
+									</p>
+								</ion-label>
+							</ion-item>
+
 
 							<ion-item-divider>
 								<ion-label>
 									Прикреплённые файлы (пример)
 								</ion-label>
 							</ion-item-divider>
+<!--							<ion-item-divider>-->
+<!--								<ion-label>-->
+<!--									Комментарии-->
+<!--									<ion-label v-for="comment in task_comments">{{ comment.comment }}</ion-label>-->
+<!--									<ion-label>{{ task.comment }}</ion-label>-->
+<!--								</ion-label>-->
+<!--							</ion-item-divider>-->
 
-							<ion-item
-								class="attachment-item"
-								v-for="file in attachments"
-								@click="openFile(file.secureUrl)"
-								:button="true"
-								:detail="true"
-							>
+							<ion-item class="attachment-item" v-for="file in attachments"
+									  @click="openFile(file.secureUrl)" :button="true" :detail="true">
 								<ion-thumbnail slot="start">
-									<img
-										v-if="file.file_type.includes('image')"
-										alt="Silhouette of mountains"
-										:src="file.secureUrl"
-									/>
+									<img v-if="file.file_type.includes('image')" alt="Silhouette of mountains"
+										 :src="file.secureUrl" />
 								</ion-thumbnail>
 								<ion-label>
 									<h3>Имя файла</h3>
@@ -217,11 +232,10 @@
 						Редактировать
 					</ion-button>
 				</ion-col>
-				
+
 				<ion-col v-if="!task_is_done" class="ion-no-padding">
-					<ion-button v-if="!task_is_done"
-					expand="full" fill="clear"
-					color="danger" @click="completeTaskAlert">
+					<ion-button v-if="!task_is_done" expand="full" fill="clear" color="danger"
+								@click="completeTaskAlert">
 						Завершить
 					</ion-button>
 				</ion-col>
@@ -229,37 +243,20 @@
 		</ion-footer>
 
 
-		<ion-modal
-			v-if="successModalOpen"
-			:is-open="successModalOpen"
-			@didDismiss="closeModal"
-			:initial-breakpoint="1"
-			:breakpoints="[0, 1]"
-		>
+		<ion-modal v-if="successModalOpen" :is-open="successModalOpen" @didDismiss="closeModal" :initial-breakpoint="1"
+				   :breakpoints="[0, 1]">
 			<div class="block ion-padding">
 				<div class="modal-content" v-if="!pending">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="64"
-						height="64"
-						fill="currentColor"
-						class="bi bi-calendar2-check"
-						viewBox="0 0 16 16"
-					>
+					<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor"
+						 class="bi bi-calendar2-check" viewBox="0 0 16 16">
 						<path
-							d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0"
-						/>
+							d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0" />
 						<path
-							d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"
-						/>
-						<path
-							d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5z"
-						/>
+							d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
+						<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5z" />
 					</svg>
 					<p>Задача завершена</p>
-					<ion-button expand="block" @click="router.push('/tasks')"
-						>Перейти к списку задач</ion-button
-					>
+					<ion-button expand="block" @click="router.push('/tasks')">Перейти к списку задач</ion-button>
 				</div>
 				<div class="modal-content pending" v-else>Сохранение...</div>
 			</div>
@@ -298,7 +295,7 @@ import {
 	IonButtons,
 	IonBackButton,
 	IonSpinner,
-	alertController
+	alertController,
 } from "@ionic/vue";
 
 import { ref, onMounted } from "vue";
@@ -328,6 +325,11 @@ const successModalOpen = ref(false);
 
 const pending = ref(false);
 
+const statusesRU: { [key: string]: string } = {
+	"NEW": "НОВАЯ",
+	"DONE": "ЗАВЕРШЕНА",
+};
+
 const attachments = ref([
 	{
 		secureUrl: "https://ionicframework.com/docs/img/demos/card-media.png",
@@ -353,7 +355,7 @@ const fetchTaskData = async () => {
 
 	task_comments.value = await TaskService.getTaskComments(taskUID.value);
 
-	console.log(task_comments.value);
+	console.log("TASKCOMMENTS VALUE:", task_comments.value);
 
 	// if (store.state.crutches) {
 	// 	dateDeadline.value = parseInt(
@@ -371,11 +373,13 @@ const fetchTaskData = async () => {
 	setInterval(() => {
 		timeToDeadline.value = getTimeRemaining(dateDeadline.value);
 	}, 1000);
+
+
 };
 
 eventBus.on("taskUpdated", () => {
-	fetchTaskData();
-}
+		fetchTaskData();
+	},
 );
 
 onMounted(async () => {
@@ -393,16 +397,16 @@ const getTimeRemaining = (timestamp: number): string | false => {
 	}
 
 	const days = String(
-		Math.floor(timeDifference / (1000 * 60 * 60 * 24))
+		Math.floor(timeDifference / (1000 * 60 * 60 * 24)),
 	).padStart(2, "0");
 	const hours = String(
-		Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+		Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
 	).padStart(2, "0");
 	const minutes = String(
-		Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60))
+		Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60)),
 	).padStart(2, "0");
 	const seconds = String(
-		Math.floor((timeDifference % (1000 * 60)) / 1000)
+		Math.floor((timeDifference % (1000 * 60)) / 1000),
 	).padStart(2, "0");
 
 	return `${days}дн. ${hours}:${minutes}:${seconds}`;
@@ -411,7 +415,7 @@ const getTimeRemaining = (timestamp: number): string | false => {
 const formatDateToLocaleString = (
 	unixTimestamp: number,
 	locale: string = "ru-RU",
-	options?: Intl.DateTimeFormatOptions
+	options?: Intl.DateTimeFormatOptions,
 ): string => {
 	const date = new Date(unixTimestamp * 1e3);
 
@@ -432,11 +436,19 @@ const openUser = (id: string) => {
 	router.push(`/users/${id}`);
 };
 
+const openResponsibles = (taskUID: string) => {
+	router.push(`/tasks/responsibles/${taskUID}`);
+};
+
+const openComments = (taskUID: string) => {
+	router.push(`/tasks/comments/${taskUID}`);
+};
+
 const editTask = (taskUID: string) => {
 	router.push(
 		{
 			path: `/tasks/edit/${taskUID}`,
-		}
+		},
 	);
 };
 
@@ -491,7 +503,7 @@ const completeTaskAlert = async () => {
 ion-fab-button {
 	--border-radius: 128px;
 	--box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3),
-		0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+	0px 1px 3px 1px rgba(0, 0, 0, 0.15);
 	--color: black;
 }
 
@@ -533,13 +545,13 @@ ion-thumbnail {
 }
 
 ion-item-divider {
-    --background: transparent;
-    --color: #171717;
+	--background: transparent;
+	--color: #171717;
 
-    --padding-top: 10px;
-    --padding-bottom: 10px;
-    --padding-start: 20px;
-    --padding-end: 20px;
+	--padding-top: 10px;
+	--padding-bottom: 10px;
+	--padding-start: 20px;
+	--padding-end: 20px;
 }
 
 .attachment-item {
@@ -556,8 +568,8 @@ ion-modal {
 
 ion-footer ion-button {
 	height: 44px;
-	margin: 0!important;
-	--border-radius:0!important;
+	margin: 0 !important;
+	--border-radius: 0 !important;
 }
 
 ion-chip {
@@ -577,5 +589,4 @@ ion-chip {
 		/* border: 1px solid var(--ion-color-medium) !important; */
 	}
 }
-
 </style>

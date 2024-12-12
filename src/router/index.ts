@@ -46,6 +46,15 @@ const routes: Array<RouteRecordRaw> = [
 				path: "edit/:id",
 				component: () => import("@/views/tasks/edit/index.vue"),
 			},
+			{
+				path: "responsibles/:id",
+				component: () => import("@/views/tasks/edit/responsibles/index.vue"),
+			},
+
+			{
+				path: "comments/:id",
+				component: () => import("@/views/tasks/edit/comments/index.vue"),
+			},
 
 			{
 				path: ":id",
@@ -103,11 +112,15 @@ const routes: Array<RouteRecordRaw> = [
 				component: () => import("@/views/orders/all/index.vue"),
 			},
 			{
-				path: ":clientorderid/details",
+				path: "my",
+				component: () => import("@/views/orders/my/index.vue"),
+			},
+			{
+				path: ":clientorderid/:userid/details",
 				component: () => import("@/views/orders/details/index.vue"),
 			},
 			{
-				path: ":clientorderid/products",
+				path: ":clientorderid/:userid/products",
 				component: () => import("@/views/orders/products/index.vue"),
 			},
 		],

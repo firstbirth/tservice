@@ -63,10 +63,10 @@
 				color="primary"
 				class="task_filter fadeInDown"
 			>
-				<ion-segment-button value="important">
+				<ion-segment-button value="important" @click="openOrders">
 					<ion-label>Заказы</ion-label>
 				</ion-segment-button>
-				<ion-segment-button value="default">
+				<ion-segment-button value="default" @click="openWorkOrders">
 					<ion-label>Заказ-наряды</ion-label>
 				</ion-segment-button>
 			</ion-segment>
@@ -87,7 +87,7 @@
 							</ion-col>
 						</ion-row>
 					</ion-card-title>
-					<ion-card-subtitle v-if="order.date"> </ion-card-subtitle>
+					<ion-card-subtitle v-if="order.date"></ion-card-subtitle>
 				</ion-card-header>
 				<ion-card-content>
 					<ion-row>
@@ -144,7 +144,8 @@
 								>
 									<ion-label>
 										Комментарий:
-										{{ order.comment }}</ion-label
+										{{ order.comment }}
+									</ion-label
 									>
 								</ion-chip>
 							</p>
@@ -166,7 +167,8 @@
 						попытку позже.
 					</p>
 					<ion-button expand="block" @click="fetchClientOrders"
-						>Обновить</ion-button
+					>Обновить
+					</ion-button
 					>
 				</div>
 			</div>
@@ -174,8 +176,8 @@
 
 		<ion-footer v-if="is_admin">
 			<ion-segment color="danger" value="all">
-				<ion-segment-button value="all"> Все </ion-segment-button>
-				<ion-segment-button value="my"> Мои </ion-segment-button>
+				<ion-segment-button value="all" @click="openNotifications"> Все</ion-segment-button>
+				<ion-segment-button value="my"> Мои</ion-segment-button>
 			</ion-segment>
 		</ion-footer>
 	</ion-page>
@@ -218,6 +220,14 @@ const openNotifications = () => {
 	router.push("/notifications");
 };
 
+const openWorkOrders = () => {
+	router.push("/workorders");
+};
+
+const openOrders = () => {
+	router.push("/orders/all");
+};
+
 const is_admin = computed(() => store.getters["isAdmin"]);
 const loading = ref<boolean>(true);
 const start = ref<number>(0);
@@ -230,9 +240,9 @@ const clientOrders = ref<ClientOrder[]>([]);
 const fetchClientOrders = async () => {
 	try {
 		const data = await ClientOrderService.getClientOrders(
-			1,
+			store.getters["getUserId"] === 0 ? 1 : store.getters["getUserId"],
 			start.value,
-			limit.value
+			limit.value,
 		);
 
 		if (data.length !== 0) {
@@ -263,7 +273,7 @@ const handleRefresh = (event: CustomEvent) => {
 const formatDateToLocaleString = (
 	unixTimestamp: number,
 	locale: string = "ru-RU",
-	options?: Intl.DateTimeFormatOptions
+	options?: Intl.DateTimeFormatOptions,
 ): string => {
 	const date = new Date(unixTimestamp * 1e3);
 
@@ -284,6 +294,7 @@ const formatDateToLocaleString = (
 ion-segment {
 	--background: #fff;
 }
+
 .ion-chip__in {
 	display: flex;
 	align-items: center;

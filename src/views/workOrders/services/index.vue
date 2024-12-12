@@ -38,24 +38,21 @@
 
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Услуга</h2>
-                            <p>{{
-                                workOrderService?.service
-                                    ? workOrderService?.service
-                                    : "Не указана"
-                            }}</p>
+                            <h2>Услуга: {{
+									workOrderService?.service
+										? workOrderService?.service
+										: "Не указана"
+								}}</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Количество</h2>
-                            <p>{{ workOrderService.quantity }} шт.</p>
+                            <h2>Количество: {{ workOrderService.quantity }} шт.</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Цена</h2>
-                            <p>{{ workOrderService?.price }} тг.</p>
+                            <h2>Цена: {{ workOrderService?.price }} тг.</h2>
                         </ion-label>
                     </ion-item>
 
@@ -315,40 +312,40 @@ const closeModal = () => {
     // router.go(-1);
 };
 
-const completeTaskAlert = async () => {
-    const alert = await alertController.create({
-        header: "Закрыть задачу",
-        message: "Вы собираетесь закрыть задачу. Продолжить?",
-        buttons: [
-            {
-                text: "Отмена",
-                role: "cancel",
-                htmlAttributes: {
-                    "aria-label": "отмена",
-                },
-                handler: () => {
-                    console.log("Код отмены");
-                },
-            },
-            {
-                text: "Закрыть задачу",
-                role: "destructive",
-                htmlAttributes: {
-                    "aria-label": "Закрыть задачу",
-                },
-                handler: async () => {
-                    console.log("Код закрытия задачи.");
-                    let result = await TaskService.completeTask(taskUID.value).then(() => {
-                        successModalOpen.value = false;
-                        Haptics.notification({ style: ImpactStyle.Light });
-                    });
-                },
-            },
-        ],
-    });
+// const completeTaskAlert = async () => {
+//     const alert = await alertController.create({
+//         header: "Закрыть задачу",
+//         message: "Вы собираетесь закрыть задачу. Продолжить?",
+//         buttons: [
+//             {
+//                 text: "Отмена",
+//                 role: "cancel",
+//                 htmlAttributes: {
+//                     "aria-label": "отмена",
+//                 },
+//                 handler: () => {
+//                     console.log("Код отмены");
+//                 },
+//             },
+//             {
+//                 text: "Закрыть задачу",
+//                 role: "destructive",
+//                 htmlAttributes: {
+//                     "aria-label": "Закрыть задачу",
+//                 },
+//                 handler: async () => {
+//                     console.log("Код закрытия задачи.");
+//                     let result = await TaskService.completeTask(taskUID.value).then(() => {
+//                         successModalOpen.value = false;
+//                         Haptics.notification({ style: ImpactStyle.Light });
+//                     });
+//                 },
+//             },
+//         ],
+//     });
 
-    await alert.present();
-};
+//     await alert.present();
+// };
 </script>
 
 <style scoped>

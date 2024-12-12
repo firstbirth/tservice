@@ -12,6 +12,8 @@ const store = createStore({
 		role: "",
 		userid: 0,
 		crutches: true,
+		pinCode: "",
+		login: "",
 	},
 	mutations: {
 		toggleDarkMode(state) {
@@ -42,8 +44,17 @@ const store = createStore({
 			state.userid = id;
 			// console.log("Username set: ", state.username);
 		},
+
+		setPinCode(state, pinCode: string) {
+			state.pinCode = pinCode;
+		},
+
+		setLogin(state, login: string) {
+			state.login = login
+		}
 	},
 	getters: {
+
 		isAdmin(state) {
 			if (state.role === "Админы") {
 				return true;
@@ -51,9 +62,14 @@ const store = createStore({
 				return false;
 			}
 		},
+
 		getUserId(state) {
 			return state.userid;
-		}
+		},
+
+		getUserToken(state) {
+			return state.token;
+		},
 	},
 	actions: {
 		// действия

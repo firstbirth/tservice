@@ -38,30 +38,26 @@
 
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Товар</h2>
-                            <p>{{
-                                workOrderProduct?.product
-                                    ? workOrderProduct?.product
-                                    : "Не указан"
-                            }}</p>
+                            <h2>Товар: {{
+									workOrderProduct?.product
+										? workOrderProduct?.product
+										: "Не указан"
+								}}</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Количество</h2>
-                            <p>{{ workOrderProduct.quantity }} шт.</p>
+                            <h2>Количество: {{ workOrderProduct.quantity }} шт.</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Цена</h2>
-                            <p>{{ workOrderProduct?.price }} тг.</p>
+                            <h2>Цена: {{ workOrderProduct?.price }} тг.</h2>
                         </ion-label>
                     </ion-item>
                     <ion-item :button="true" :detail="false">
                         <ion-label>
-                            <h2>Место хранения</h2>
-                            <p>{{ workOrderProduct?.storagePlace }}</p>
+                            <h2>Место хранения: {{ workOrderProduct?.storagePlace }}</h2>
                         </ion-label>
                     </ion-item>
 

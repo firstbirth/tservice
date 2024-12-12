@@ -15,7 +15,7 @@
 
 			<ion-toolbar v-if="!connectionError">
 				<ion-searchbar inputmode="search" class="custom" placeholder="Поиск" :debounce="350" :animated="true"
-					@ionInput="handleInput($event)"></ion-searchbar>
+					@ionInput="handleInput"></ion-searchbar>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
@@ -98,6 +98,7 @@
 					<ion-card-content>
 						<ion-row>
 							<ion-col class="ion-no-padding">
+
 								<ion-chip :class="`ion-no-margin ${task.status.toLowerCase()}`">
 
 									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
@@ -105,32 +106,33 @@
 										<path
 											d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z" />
 									</svg>
-									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-										class="bi bi-plus-square" viewBox="0 0 16 16" v-if="task.status === 'NEW'">
-										<path
-											d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6v7zm1.5.5A.5.5 0 0 1 1 13V6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-13z" />
-									</svg>
-									<!-- <ion-spinner v-if="task.status === 'NEW'" name="dots"></ion-spinner> -->
+									<ion-spinner v-if="task.status === 'NEW'" name="dots"></ion-spinner>
 									<ion-label style="margin-left: .25rem">
-										{{ statusesRU[task.status] || 'Неизвестный статус' }}
+										{{ statusesRU[task.status] }}
 									</ion-label>
-
 								</ion-chip>
 							</ion-col>
 							<ion-col size="auto" class="ion-no-padding">
 								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.author">
 									<ion-label>{{ task.author }}</ion-label>
 								</ion-chip>
-								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.performer">
+								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.performers">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="33" fill="currentColor"
 										class="chevron-divider" viewBox="0 0 16 16">
 										<path fill-rule="evenodd"
 											d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
 									</svg>
+									<ion-label
+										v-for="performer in task.performers"
+										:key="performer.performerId"
+									color="primary"
+									class="ion-margin-end">
+									{{ performer.performer }}
+								</ion-label>
 								</ion-chip>
-								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.performer">
-									<ion-label>{{ task.performer }}</ion-label>
-								</ion-chip>
+<!--								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="task.performers">-->
+<!--									<ion-label>{{ task.performers }}</ion-label>-->
+<!--								</ion-chip>-->
 							</ion-col>
 						</ion-row>
 					</ion-card-content>
@@ -226,6 +228,9 @@ import {
 	IonFooter,
 	IonSpinner,
 } from "@ionic/vue";
+
+import { IonSearchbarCustomEvent } from '@ionic/core';
+
 import { cogOutline, notificationsOutline, add, key } from "ionicons/icons";
 
 import { useRouter } from "vue-router";
@@ -286,9 +291,11 @@ function sortTasksByDateCreated(tasks: Task[]): Task[] {
 }
 
 const fetchTasks = async () => {
+	loading.value = false
+	console.log(11111111111111111111111);
 	try {
 		const data = await TaskService.getTasks(
-			store.state.crutches ? 1 : store.getters["getUserId"],
+			store.getters['isAdmin'] ? undefined : store.getters["getUserId"],
 			start.value,
 			limit.value
 		);
@@ -366,11 +373,11 @@ const openTask = (taskUID: string, _datedeadline: number) => {
 	});
 };
 
-const handleInput = (event: { target: { value: string } }) => {
+const handleInput = (event: IonSearchbarCustomEvent<any>) => {
 	loading.value = true;
 	hideFilterTabs.value = true;
 
-	const query = event.target.value.toLowerCase();
+	const query = event.detail.value.toLowerCase();
 	results.value = tasks.value.filter(
 		(task) => task.description.toLowerCase().indexOf(query) > -1
 	);
