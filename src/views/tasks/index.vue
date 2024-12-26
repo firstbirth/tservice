@@ -231,7 +231,7 @@ import {
 
 import { IonSearchbarCustomEvent } from '@ionic/core';
 
-import { cogOutline, notificationsOutline, add, key } from "ionicons/icons";
+import { cogOutline, notificationsOutline, add, key, star } from "ionicons/icons";
 
 import { useRouter } from "vue-router";
 
@@ -292,7 +292,6 @@ function sortTasksByDateCreated(tasks: Task[]): Task[] {
 
 const fetchTasks = async () => {
 	loading.value = false
-	console.log(11111111111111111111111);
 	try {
 		const data = await TaskService.getTasks(
 			store.getters['isAdmin'] ? undefined : store.getters["getUserId"],
@@ -322,6 +321,40 @@ const fetchTasks = async () => {
 	}
 };
 
+const fetchTasks1 = async () => {
+	loading.value = false
+	console.log("ftasks1");
+	try {
+		const data = await TaskService.getTasks(
+			store.getters['isAdmin'] ? undefined : store.getters["getUserId"],
+			start.value,
+			limit.value
+		);
+
+		if (data && data.length > 0) {
+			tasks.value.push(...data);
+			results.value.push(...data);
+			start.value += limit.value;
+			// TODO: Сортировку надо бы реализовать на бэкенде
+
+			// tasks.value = sortTasksByDateCreated(tasks.value);
+			// results.value = sortTasksByDateCreated(results.value);
+			// console.log(results.value);
+		} else {
+			allTasksLoaded.value = false;
+		}
+	} catch (error) {
+		connectionError.value = true;
+		hideFilterTabs.value = true;
+	} finally {
+		loading.value = false;
+	}
+
+	console.log("TASKS.VALUE:", tasks.value);
+	console.log("RESULTS.VALUE:", results.value);
+	console.log("start.VALUE:", start.value);
+};
+
 onMounted(() => {
 	fetchTasks();
 });
@@ -331,7 +364,8 @@ const handleRefresh = (event: CustomEvent) => {
 		tasks.value = [];
 		results.value = [];
 		start.value = 0;
-		fetchTasks();
+		fetchTasks1();
+		console.log("handleRefresh");
 		event.target.complete();
 	}, 150);
 };

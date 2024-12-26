@@ -70,14 +70,15 @@
 					<ion-label>Заказ-наряды</ion-label>
 				</ion-segment-button>
 			</ion-segment>
-
 			<ion-card
 				v-for="order in clientOrders"
 				:key="order.clientOrderId"
 				:button="true"
 				@click="() => {}"
 			>
+
 				<ion-card-header>
+
 					<ion-card-title>
 						<ion-row>
 							<ion-col class="ion-no-padding">
@@ -154,32 +155,26 @@
 				</ion-card-content>
 				<ion-progress-bar :value="order.fulfillment"></ion-progress-bar>
 			</ion-card>
-
-			<TimeManager />
-		</ion-content>
-
-		<ion-footer v-if="connectionError">
-			<div class="block ion-padding">
-				<div class="error-block-content">
-					<p>Проблемы с соединением</p>
-					<p>
-						Не удаётся получить список задач. Попробуйте повторить
-						попытку позже.
-					</p>
-					<ion-button expand="block" @click="fetchClientOrders"
-					>Обновить
-					</ion-button
-					>
+			<ion-footer>
+				<div class="block ion-padding" v-if="allTasksLoaded">
+					<div class="error-block-content">
+						<p>Заказы не найдены</p>
+						<p>
+							У вас нет заказов, закрепленных за Вами.
+						</p>
+					</div>
 				</div>
-			</div>
-		</ion-footer>
-
-		<ion-footer v-if="is_admin">
-			<ion-segment color="danger" value="all">
-				<ion-segment-button value="all" @click="openNotifications"> Все</ion-segment-button>
-				<ion-segment-button value="my"> Мои</ion-segment-button>
-			</ion-segment>
-		</ion-footer>
+			</ion-footer>
+<!--			<div class="block ion-padding">-->
+<!--				<div class="error-block-content">-->
+<!--					<h2>Ничего не найдено</h2>-->
+<!--					<p>-->
+<!--						Проверьте корректность введенных данных для поиска.-->
+<!--					</p>-->
+<!--				</div>-->
+<!--			</div>-->
+<!--			<TimeManager />-->
+		</ion-content>
 	</ion-page>
 </template>
 
@@ -193,7 +188,7 @@ import {
 	IonButtons,
 	IonButton,
 	IonIcon,
-	IonProgressBar,
+	IonProgressBar, IonCardHeader,
 } from "@ionic/vue";
 import {
 	cogOutline,
@@ -244,14 +239,18 @@ const fetchClientOrders = async () => {
 			start.value,
 			limit.value,
 		);
-
-		if (data.length !== 0) {
+		// console.log("fetchClientOrders DATA:", JSON.parse(data));
+		if (data.length > 0) {
+			console.log("fetchClientOrders DATA:", data);
 			clientOrders.value.push(...data);
+
 		} else {
+			console.log("fetchClientOrders DATA:111", data);
+
 			allTasksLoaded.value = true;
 		}
 	} catch (error) {
-		console.log(error);
+		console.log("ERROR HERE", error);
 		connectionError.value = true;
 	} finally {
 		loading.value = false;

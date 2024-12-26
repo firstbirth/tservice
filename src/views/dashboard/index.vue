@@ -18,7 +18,8 @@
 				<ion-toolbar>
 					<ion-buttons slot="end">
 						<ion-button @click="openNotifications">
-							<ion-icon slot="icon-only" :ios="notificationsOutline" :md="notificationsOutline"></ion-icon>
+							<ion-icon slot="icon-only" :ios="notificationsOutline"
+									  :md="notificationsOutline"></ion-icon>
 						</ion-button>
 						<ion-button @click="openSettings">
 							<ion-icon slot="icon-only" :ios="cogOutline" :md="cogOutline"></ion-icon>
@@ -31,12 +32,12 @@
 			<div class="content">
 
 				<span class="greeting">
-					{{ greeting ?? 'Здравствуйте' }}, {{ username === '' ? "Пользователь" : username }}!
+					{{ greeting ?? "Здравствуйте" }}, {{ username === "" ? "Пользователь" : username }}!
 				</span>
 
 				<CurrentBalance />
 				<TaskList />
-				<TimeManager />
+<!--				<TimeManager />-->
 				<BalanceHistory />
 			</div>
 
@@ -45,52 +46,62 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/vue';
-import { cogOutline, notificationsOutline } from 'ionicons/icons';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from "@ionic/vue";
+import { cogOutline, notificationsOutline } from "ionicons/icons";
 
 // import BalanceHistory from '@/components/dashboard/balancehistory/index.vue';
-import BalanceHistory from '@/components/dashboard/balancehistory/index.vue';
-import TaskList from '@/components/dashboard/tasklist/index.vue';
-import TimeManager from '@/components/dashboard/timemanager/index.vue';
-import CurrentBalance from '@/components/dashboard/currentbalance/index.vue';
+import BalanceHistory from "@/components/dashboard/balancehistory/index.vue";
+import TaskList from "@/components/dashboard/tasklist/index.vue";
+import TimeManager from "@/components/dashboard/timemanager/index.vue";
+import CurrentBalance from "@/components/dashboard/currentbalance/index.vue";
 import store from "@/store"; // импортируем объект store из файла хранилища Vuex
 
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
 const openSettings = () => {
-	router.push('/settings');
-}
+	router.push("/settings");
+};
 
 const openNotifications = () => {
-	router.push('/notifications');
-}
+	router.push("/notifications");
+};
 
-import { ref, onMounted } from 'vue';
 
-const username = ref('');
-const greeting = ref('');
+
+import { ref, onMounted } from "vue";
+import { ClientOrderService } from "@/services/client-order.service";
+import { BalanceService } from "@/services/balance.service";
+import { computed } from "vue";
+
+const username = computed(() => store.state.username);
+const greeting = computed(() => get_greeting());
+
+// const username = ref("");
+// const greeting = ref("");
 
 const get_greeting = () => {
 	const current_time = new Date();
 	const current_hour = current_time.getHours();
 
 	if (current_hour < 6) {
-		return 'Здравствуйте';
+		return "Здравствуйте";
 	} else if (current_hour < 12) {
-		return 'Доброе утро';
+		return "Доброе утро";
 	} else if (current_hour < 18) {
-		return 'Добрый день';
+		return "Добрый день";
 	} else {
-		return 'Добрый вечер';
+		return "Добрый вечер";
 	}
 };
 
 onMounted(() => {
-	username.value = store.state.username;
-	greeting.value = get_greeting();
+	// username.value = store.state.username;
+	// greeting.value = get_greeting();
 });
+
+
 </script>
 
 <style scoped>

@@ -12,9 +12,11 @@
 </template>
 
 <script lang="ts">
-import { IonCard, IonCardHeader, IonCardContent } from '@ionic/vue';
-import { defineComponent } from 'vue';
-import Chart from 'chart.js/auto';
+import { IonCard, IonCardHeader, IonCardContent } from "@ionic/vue";
+import { defineComponent, onMounted, ref } from "vue";
+import Chart from "chart.js/auto";
+import { BalanceService } from "@/services/balance.service";
+import store from "@/store";
 
 export default defineComponent({
 	components: {
@@ -25,43 +27,30 @@ export default defineComponent({
 	data() {
 		return {
 			// зарплаты за каждый месяц
-			salaries: [
-				175990,
-				188271,
-				205011,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0
-			]
+			salaries: Array(12).fill(0), // Инициализация массива с нулями
 		};
 	},
 	mounted() {
-		this.renderChart();
+		this.getSalary(); // Загрузка данных сразу при монтировании
 	},
 	methods: {
 		renderChart() {
-			const ctx = (this.$refs.chart as HTMLCanvasElement).getContext('2d');
+			const ctx = (this.$refs.chart as HTMLCanvasElement).getContext("2d");
 			if (!ctx) return;
 
 			const monthNames = [
-				'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-				'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+				"Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+				"Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
 			];
 
 			new Chart(ctx, {
-				type: 'bar',
+				type: "bar",
 				data: {
-					labels: Array.from({ length: 12 }, (_, i) => i + 1),
+					labels: monthNames, // Используем месяцы как метки
 					datasets: [{
-						label: 'Зарплата за месяц',
+						label: "Зарплата за месяц",
 						data: this.salaries,
-						backgroundColor: this.salaries.map((_, i) => i + 1 === new Date().getMonth() + 1 ? '#eb445a' : '#ccc'),
+						backgroundColor: this.salaries.map((_, i) => i + 1 === new Date().getMonth() ? "#eb445a" : "#ccc"), // Цвет для текущего месяца
 					}],
 				},
 				options: {
@@ -76,19 +65,66 @@ export default defineComponent({
 						},
 						tooltip: {
 							callbacks: {
-								title: function (context) {
+								title: function(context) {
 									const labelIndex = context[0].dataIndex;
-									return monthNames[labelIndex];
-								}
-							}
-						}
+									return monthNames[labelIndex]; // Названия месяцев для тултипов
+								},
+							},
+						},
 					},
 				},
 			});
 		},
 
+		async getSalary() {
+			let salary_data;
+
+			try {
+				salary_data = await BalanceService.getUserSalary(store.getters["getUserId"] === 0 ? 1 : store.getters["getUserId"]);
+			} catch (error) {
+				console.error("Error:", error);
+			}
+
+			// Проверяем, что данные получены
+			if (salary_data) {
+				const salaryMapping = {
+					1: "top1",
+					2: "top2",
+					3: "top3",
+					4: "top4",
+					5: "top5",
+					6: "top6",
+					7: "top7",
+					8: "top8",
+					9: "top9",
+					10: "top10",
+					11: "top11",
+					12: "top12",
+				};
+
+				// Инициализация массива с нулями
+				let updatedSalaries = Array(12).fill(0);
+
+				// Проходим по данным с сервера и заполняем зарплаты для соответствующих месяцев
+				for (let month = 1; month <= 5; month++) {
+					const salaryKey = salaryMapping[month];
+					if (salary_data[salaryKey] !== undefined) {
+						updatedSalaries[month - 1] = salary_data[salaryKey]; // Устанавливаем зарплату в соответствующий месяц
+					}
+				}
+
+				// Обновляем массив зарплат в компоненте
+				this.salaries = updatedSalaries;
+
+				// После обновления данных перерисовываем график
+				this.$nextTick(() => {
+					this.renderChart(); // Перерисовываем график после обновления данных
+				});
+			}
+		},
 	},
 });
+
 </script>
 
 <style scoped>

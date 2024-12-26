@@ -42,42 +42,29 @@
 				<ion-card v-for="product in products" :button="true" :key="product.productOid"
 						  @click="() => openProduct(product.scanCode)">
 					<ion-card-header>
-						<ion-card-title>
-							<ion-row>
-								<ion-col class="ion-no-padding">
-									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="green"
-										 class="bi bi-bookmark" viewBox="0 0 16 16">
-										<path
-											d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z" />
-									</svg>
-									{{
-										product.productName
-											? product.productName
-											: "Без названия"
-									}}
-								</ion-col>
-								<ion-row class="ion-align-items-start ion-flex-direction-column">
-									<ion-col class="ion-no-padding" size="auto">
-										<ion-chip color="primary" class="ion-no-margin" style="margin-right: 0.5rem">
-											<ion-label>Код вендора: {{ product.vendorCode }}</ion-label>
-										</ion-chip>
-									</ion-col>
 
-									<ion-col class="ion-no-padding" size="auto">
-										<ion-chip color="tertiary" class="ion-no-margin">
-											<ion-label>Скан-код: {{ product.scanCode }}</ion-label>
-										</ion-chip>
-									</ion-col>
-								</ion-row>
-							</ion-row>
-						</ion-card-title>
+						<ion-row>
+							<ion-col class="ion-no-padding" size="auto">
+								<ion-chip class="ion-no-margin"
+										  style="margin-right: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
 
+									{{ truncatedClientName(product.productName) }}
+								</ion-chip>
+							</ion-col>
+							<ion-chip color="primary" class="ion-no-margin"
+									  style="margin-right: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+								<ion-label>Код вендора: {{ product.vendorCode }}</ion-label>
+							</ion-chip>
+							<ion-col class="ion-no-padding" size="auto">
+								<ion-chip color="tertiary" class="ion-no-margin">
+									<ion-label>Скан-код: {{ product.scanCode }}</ion-label>
+								</ion-chip>
+							</ion-col>
+						</ion-row>
 					</ion-card-header>
-
 					<ion-card-content>
 						<ion-row>
 							<ion-col size="auto" class="ion-no-padding">
-
 								<ion-chip class="ion-no-margin ion-no-padding" color="black" v-if="product.productName">
 									<ion-label>Цена: {{ product.price }} тг.</ion-label>
 								</ion-chip>
@@ -106,12 +93,6 @@
 												 loading-spinner="circular"></ion-infinite-scroll-content>
 				</ion-infinite-scroll>
 			</section>
-
-			<ion-fab slot="fixed" vertical="bottom" horizontal="end" v-if="is_admin && !connectionError">
-				<ion-fab-button color="primary" shape="round" @click="openNewTodo">
-					<ion-icon :icon="add"></ion-icon>
-				</ion-fab-button>
-			</ion-fab>
 		</ion-content>
 
 		<ion-footer v-if="connectionError">
@@ -230,6 +211,14 @@ function sortTasksByDateCreated(tasks: Task[]): Task[] {
 	return tasks.sort((a, b) => a.dateCreated - b.dateCreated);
 }
 
+
+const truncatedClientName = (clientName: string) => {
+	return clientName.length > 25
+		? clientName.slice(0, 25) + "..."
+		: clientName;
+};
+
+
 // const fetchTasks = async () => {
 // 	console.log(1111111122);
 // 	try {
@@ -316,6 +305,10 @@ const loadFromScroll = async (productName: string) => {
 	loading.value = true;
 	let products_data;
 
+	if (productName === "") {
+		loading.value = false;
+		return;
+	}
 	try {
 		products_data = await HttpService.post({
 			url: `${API_URL}/SearchProduct/v3/`,
@@ -324,7 +317,10 @@ const loadFromScroll = async (productName: string) => {
 				start: start.value.toString(),
 				limit: limit.value.toString(),
 			},
+			shouldEncodeUrlParams: false,
 		});
+
+		console.log("PRODUCTS_DATA", products_data);
 	} catch (error) {
 		console.log("Error from fetching:", error);
 	} finally {
@@ -347,7 +343,7 @@ const loadFromScroll = async (productName: string) => {
 };
 
 const handleInput = async (event: { target: { value: string } }) => {
-	loading.value = true;
+	// loading.value = true;
 
 
 	if (event.target.value === "") {
@@ -355,6 +351,7 @@ const handleInput = async (event: { target: { value: string } }) => {
 		typedProductName.value = "";
 		loading.value = false;
 		start.value = 0;
+		return null;
 	} else typedProductName.value = event.target.value;
 
 	console.log(event.target.value);
@@ -369,7 +366,11 @@ const handleInput = async (event: { target: { value: string } }) => {
 				start: start.value.toString(),
 				limit: limit.value.toString(),
 			},
+			shouldEncodeUrlParams: false,
 		});
+
+		console.log("TASK_DATA_HANDLE_INPUT", task_data);
+		console.log("event.target.value", event.target.value);
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {

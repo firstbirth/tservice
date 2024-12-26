@@ -195,30 +195,30 @@
 							</ion-item>
 
 
-							<ion-item-divider>
-								<ion-label>
-									Прикреплённые файлы (пример)
-								</ion-label>
-							</ion-item-divider>
-<!--							<ion-item-divider>-->
-<!--								<ion-label>-->
-<!--									Комментарии-->
-<!--									<ion-label v-for="comment in task_comments">{{ comment.comment }}</ion-label>-->
-<!--									<ion-label>{{ task.comment }}</ion-label>-->
-<!--								</ion-label>-->
-<!--							</ion-item-divider>-->
+							<!--							<ion-item-divider>-->
+							<!--								<ion-label>-->
+							<!--									Прикреплённые файлы (пример)-->
+							<!--								</ion-label>-->
+							<!--							</ion-item-divider>-->
+							<!--&lt;!&ndash;							<ion-item-divider>&ndash;&gt;-->
+							<!--&lt;!&ndash;								<ion-label>&ndash;&gt;-->
+							<!--&lt;!&ndash;									Комментарии&ndash;&gt;-->
+							<!--&lt;!&ndash;									<ion-label v-for="comment in task_comments">{{ comment.comment }}</ion-label>&ndash;&gt;-->
+							<!--&lt;!&ndash;									<ion-label>{{ task.comment }}</ion-label>&ndash;&gt;-->
+							<!--&lt;!&ndash;								</ion-label>&ndash;&gt;-->
+							<!--&lt;!&ndash;							</ion-item-divider>&ndash;&gt;-->
 
-							<ion-item class="attachment-item" v-for="file in attachments"
-									  @click="openFile(file.secureUrl)" :button="true" :detail="true">
-								<ion-thumbnail slot="start">
-									<img v-if="file.file_type.includes('image')" alt="Silhouette of mountains"
-										 :src="file.secureUrl" />
-								</ion-thumbnail>
-								<ion-label>
-									<h3>Имя файла</h3>
-									<p>{{ file.title }}</p>
-								</ion-label>
-							</ion-item>
+							<!--							<ion-item class="attachment-item" v-for="file in attachments"-->
+							<!--									  @click="openFile(file.secureUrl)" :button="true" :detail="true">-->
+							<!--								<ion-thumbnail slot="start">-->
+							<!--									<img v-if="file.file_type.includes('image')" alt="Silhouette of mountains"-->
+							<!--										 :src="file.secureUrl" />-->
+							<!--								</ion-thumbnail>-->
+							<!--								<ion-label>-->
+							<!--									<h3>Имя файла</h3>-->
+							<!--									<p>{{ file.title }}</p>-->
+							<!--								</ion-label>-->
+							<!--							</ion-item>-->
 						</ion-list>
 					</ion-card-content>
 				</ion-card>

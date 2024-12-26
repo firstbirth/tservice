@@ -16,6 +16,7 @@ export class TaskService {
 				start: _start.toString(),
 				limit: _limit.toString(),
 				selectionType: "author",
+				sortType: 'DESC',
 			};
 
 
@@ -77,6 +78,7 @@ export class TaskService {
 					authorId: authorId.toString(),
 					comment: comment,
 				},
+				shouldEncodeUrlParams: false,
 			});
 		} catch (error) {
 			console.log(error);
@@ -99,6 +101,7 @@ export class TaskService {
 					oID: oID,
 					name: name,
 				},
+				shouldEncodeUrlParams: false,
 			});
 		} catch (error) {
 			console.error("Error:", error);
@@ -150,6 +153,8 @@ export class TaskService {
 
 	static async updateComment(commentId: string, dateModified: string, author: string, authorId: number, comment: string) {
 		let comment_data;
+		console.log("ENCODEDURLCOMPONENT:", encodeURIComponent("Арсланов А.А."));
+		const encoded_author = encodeURIComponent(author);
 
 		try {
 			comment_data = await HttpService.post({
@@ -157,10 +162,11 @@ export class TaskService {
 				params: {
 					id: commentId,
 					dateModified: dateModified,
-					author: author,
+					author: decodeURIComponent(encoded_author),
 					authorId: authorId.toString(),
 					comment: comment,
 				},
+				shouldEncodeUrlParams: false
 			});
 		} catch (error) {
 			console.log(error);
@@ -209,7 +215,10 @@ export class TaskService {
 					"Content-Type": "application/json",
 					Authorization: "Basic 0JDQtNC80LjQvdC40YHRgtGA0LDRgtC+0YA6Z2hidnRo",
 				},
+				shouldEncodeUrlParams: false,
 			});
+
+			console.log("task_send_response", JSON.stringify(task_send_response));
 		} catch (error) {
 			console.error("Error:", error);
 		}
@@ -274,6 +283,7 @@ export class TaskService {
 					"Content-Type": "application/json",
 					Authorization: "Basic 0JDQtNC80LjQvdC40YHRgtGA0LDRgtC+0YA6Z2hidnRo",
 				},
+				shouldEncodeUrlParams: false,
 			});
 		} catch (error) {
 			console.error("Error:", error);

@@ -30,6 +30,7 @@ export class ClientOrderService {
 
 			if (order_data.data.response === "invalid accessId") {
 				await renewToken(store.state.login, store.state.pinCode);
+				params.accessId = store.getters["getUserToken"];
 				order_data = await HttpService.post({
 					url: `${API_URL}/GetClientOrders/v3/`,
 					params,

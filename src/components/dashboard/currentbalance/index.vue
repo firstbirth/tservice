@@ -15,9 +15,9 @@
 				<ion-col size="2">
 					<div class="flex-centered">
 						<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="white"
-							class="bi bi-chevron-compact-right" viewBox="0 0 16 16">
+							 class="bi bi-chevron-compact-right" viewBox="0 0 16 16">
 							<path fill-rule="evenodd"
-								d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
+								  d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
 						</svg>
 					</div>
 				</ion-col>
@@ -27,22 +27,78 @@
 </template>
 
 <script setup lang="ts">
-import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonButton, IonCol, IonRow } from '@ionic/vue';
-import { useRouter } from 'vue-router';
+import {
+	IonCard,
+	IonCardContent,
+	IonCardHeader,
+	IonCardSubtitle,
+	IonCardTitle,
+	IonButton,
+	IonCol,
+	IonRow,
+} from "@ionic/vue";
+import { useRouter } from "vue-router";
+import { BalanceService } from "@/services/balance.service";
+import store from "@/store";
+import { onMounted, ref } from "vue";
+import { watch } from "vue";
 
 const router = useRouter();
 
 // разделить число на разряды
 const formatNumber = (x: number) => {
 	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
+};
 
-let balance: number = 123456;
-let pending_balance: number = 74815;
-
+// let balance: number = 123456;
+// const balance = ref(0);
+// const pending_balance = ref(0);
 const openBalance = () => {
-	router.push('/dashboard/balance');
-}
+	router.push("/dashboard/balance");
+};
+
+const balance = ref(null);
+const pending_balance = ref(null);
+
+const getSalary = async () => {
+	let salary_data;
+
+	try {
+		salary_data = await BalanceService.getUserSalary(store.getters["getUserId"] === 0 ? 1 : store.getters["getUserId"]);
+	} catch (error) {
+		console.error("Error:", error);
+	}
+	if (salary_data) {
+		balance.value = salary_data.salary
+	}
+};
+const getWorkOrdersTotal = async () => {
+	let workOrderTotal_data;
+
+	try {
+		workOrderTotal_data = await BalanceService.getWorkOrdersTotal(store.getters["getUserId"] === 0 ? 1 : store.getters["getUserId"]);
+	} catch (error) {
+		console.error("Error:", error);
+	}
+	if (workOrderTotal_data) {
+		pending_balance.value = workOrderTotal_data.Total
+	}
+};
+
+watch(
+	() => store.getters["getUserId"],
+	(newUserId) => {
+		getSalary();
+		getWorkOrdersTotal();
+	},
+	{ immediate: true } // Вызываем сразу при монтировании
+);
+
+
+onMounted(() => {
+	getSalary();
+	getWorkOrdersTotal();
+});
 </script>
 
 <style scoped>

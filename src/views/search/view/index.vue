@@ -15,42 +15,36 @@
                     <ion-list :inset="false">
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Наименование</h2>
-                                <p>{{
-                                    product?.productName
-                                        ? product?.productName
-                                        : "Без названия"
-                                }}</p>
+                                <h2>Наименование: {{
+										product?.productName
+											? product?.productName
+											: "Без названия"
+									}}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Идентификатор продукта</h2>
-                                <p>{{ product?.productOid }}</p>
+                                <h2>Идентификатор продукта: {{ product?.productOid }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Скан-код</h2>
-                                <p>{{ product?.scanCode }}</p>
+                                <h2>Скан-код: {{ product?.scanCode }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Код производителя</h2>
-                                <p>{{ product?.vendorCode }}</p>
+                                <h2>Код производителя: {{ product?.vendorCode }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Общий остаток</h2>
-                                <p>{{ product?.restTotal }}</p>
+                                <h2>Общий остаток: {{ product?.restTotal }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Остаток по складам</h2>
-                                <p>{{ product?.restByWarehouse.length ? product.restByWarehouse : 'Не указано' }}</p>
+                                <h2>Остаток по складам: {{ product?.restByWarehouse.length ? product.restByWarehouse : 'Не указано' }}</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
@@ -76,13 +70,12 @@
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Цена</h2>
-                                <p>{{ product?.price }} тг.</p>
+                                <h2>Цена: {{ product?.price }} тг.</h2>
                             </ion-label>
                         </ion-item>
                         <ion-item :button="true" :detail="false">
                             <ion-label>
-                                <h2>Аналоги продукта</h2>
+                                <h2>Аналоги продукта: </h2>
                                 <p v-if="product?.productAnalogues.length">
                                 <ul class="analogues-list">
                                     <li v-for="(analogue, index) in product.productAnalogues" :key="index">

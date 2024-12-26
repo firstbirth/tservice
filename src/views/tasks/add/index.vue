@@ -226,13 +226,13 @@ const openTask = (taskUID: string) => {
 
 const closeModal = () => {
 	successModalOpen.value = false;
-	router.go(-1);
+	// router.go(-1);
 };
 
 const submitTask = async () => {
 	let _data = {
 		dateCreated: Math.round(new Date(Date.now()).getTime() / 1000),
-		dateDeadline: task_deadline.value,
+		dateDeadline: task_deadline.value.toFixed(2),
 		author: store.state.crutches ? "Администратор" : task_author.value,
 		authorId: store.state.crutches ? 1 : task_author_id.value,
 		performer: task_performer.value,
@@ -250,7 +250,7 @@ const submitTask = async () => {
 			Haptics.notification({ style: ImpactStyle.Light });
 			successModalOpen.value = true;
 			newTaskUID.value = response.taskUID;
-			// console.log(response.taskUID);
+			console.log("TASKDATAINFO:", response);
 		} else {
 			// show error alert
 			// router.push(-1);
