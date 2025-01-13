@@ -470,7 +470,7 @@ const handleInput = async (event: { target: { value: string } }) => {
 		// console.log("Products:", workOrders.value);
 
 	} else {
-		allWorkOrdersLoaded.value = true;
+		allWorkOrdersLoaded.value = false;
 	}
 };
 

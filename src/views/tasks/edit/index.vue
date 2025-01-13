@@ -536,6 +536,7 @@ const updateTask = async () => {
 			// router.push(-1);
 		}
 	});
+
 };
 </script>
 

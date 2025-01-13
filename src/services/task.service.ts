@@ -8,6 +8,7 @@ export class TaskService {
 		_userid: number | undefined = undefined,
 		_start: number = 0,
 		_limit: number = 10,
+		_selection_type: string = "author",
 	) {
 		let task_data;
 
@@ -15,14 +16,17 @@ export class TaskService {
 			const params: { [key: string]: string } = {
 				start: _start.toString(),
 				limit: _limit.toString(),
-				selectionType: "author",
 				sortType: 'DESC',
 			};
-
 
 			if (_userid !== undefined) {
 				params.userId = _userid.toString();
 			}
+
+			if (_selection_type !== undefined) {
+				params.selectionType = _selection_type;
+			}
+
 			task_data = await HttpService.post({
 				url: `${API_URL}/GetTasks/v3/`,
 				params,
@@ -234,6 +238,7 @@ export class TaskService {
 			task_data = await HttpService.post({
 				url: `${API_URL}/GetTaskByUID/v3/`,
 				params: { taskUID: uid },
+				shouldEncodeUrlParams: false,
 			});
 		} catch (error) {
 			console.error("Error:", error);
@@ -253,6 +258,7 @@ export class TaskService {
 						"Content-Type": "application/json",
 						Authorization: "Basic 0JDQtNC80LjQvdC40YHRgtGA0LDRgtC+0YA6Z2hidnRo",
 					},
+					shouldEncodeUrlParams: false,
 				});
 			} catch (error) {
 				// alert('Не удалось обновить статус задачи');

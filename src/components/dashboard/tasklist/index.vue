@@ -58,8 +58,8 @@ const router = useRouter();
 const tasks = ref<Task[]>([]);
 
 const getTasks = async () => {
-	const userId = store.state.crutches ? 1 : store.getters["getUserId"];
-	const fetchedTasks = await TaskService.getTasks(userId === 0 ? 1 : userId, 0, 5);
+	const userId = store.getters['isAdmin'] ? undefined : store.getters["getUserId"]
+	const fetchedTasks = await TaskService.getTasks(userId, 0, 5, store.getters['isAdmin'] ? undefined : "performer");
 
 	// Фильтруем задачи для текущего пользователя, если это необходимо
 	// tasks.value = fetchedTasks.filter(task => task.performerId === userId);
@@ -70,8 +70,8 @@ const getTasks = async () => {
 
 // Получаем задачи при монтировании компонента
 onMounted(async () => {
-	const userId = store.state.crutches ? 1 : store.getters["getUserId"];
-	tasks.value = await TaskService.getTasks(store.getters['getUserId'] === 0 ? 1 : store.state.userid, 0, 5);
+	const userId = store.getters['isAdmin'] ? undefined : store.getters["getUserId"]
+	tasks.value = await TaskService.getTasks(userId, 0, 5, store.getters['isAdmin'] ? undefined : "performer");
 
 	// TODO: Пока в задачах не возвращается поле performerId отключаем фильтр, потом вернем
 	// здесь нужно оставить только задачи для текущего пользователя, не важно админ он или нет

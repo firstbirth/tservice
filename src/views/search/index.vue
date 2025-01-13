@@ -14,6 +14,11 @@
 			</ion-toolbar>
 
 			<ion-toolbar v-if="!connectionError">
+				<ion-select class="ion-margin-start" v-model="attributeType" placeholder="Выберите тип поиска" @ionChange="products = []">
+					<ion-select-option value="Caption">Название</ion-select-option>
+					<ion-select-option value="Barcode">Скан-код</ion-select-option>
+					<ion-select-option value="OriginalCode">Вендор-код</ion-select-option>
+				</ion-select>
 				<ion-searchbar inputmode="search" class="custom" placeholder="Введите наименование или код вендора"
 							   :debounce="500" :animated="true" @ionInput="handleInput($event)"></ion-searchbar>
 			</ion-toolbar>
@@ -40,7 +45,7 @@
                 }
                     ">
 				<ion-card v-for="product in products" :button="true" :key="product.productOid"
-						  @click="() => openProduct(product.scanCode)">
+						  @click="() => openProduct(product.vendorCode)">
 					<ion-card-header>
 
 						<ion-row>
@@ -142,9 +147,11 @@ import {
 	IonFooter,
 	IonSpinner,
 	IonToggle,
+	IonSelect,
+	IonSelectOption,
 } from "@ionic/vue";
 import { HttpService, API_URL } from "../../services/http.service";
-import { cogOutline, notificationsOutline, add, alertCircleOutline } from "ionicons/icons";
+import { cogOutline, notificationsOutline, add, alertCircleOutline, star } from "ionicons/icons";
 
 import { useRouter } from "vue-router";
 
@@ -270,8 +277,9 @@ const loadMoreTasks = async (event: CustomEvent) => {
 		(event.target as HTMLIonInfiniteScrollElement).complete();
 		(event.target as HTMLIonInfiniteScrollElement).disabled = true;
 	} else {
-		await loadFromScroll(typedProductName.value);
+		await handleInput({ target: {value: typedProductName.value} });
 		(event.target as HTMLIonInfiniteScrollElement).complete();
+
 	}
 };
 
@@ -295,11 +303,15 @@ const formatDateToLocaleString = (
 	return date.toLocaleString(locale, formatOptions);
 };
 
-const openProduct = (scanCode: string) => {
+const openProduct = (vendorCode: string) => {
+	const product = products.value.find(product => product.vendorCode === vendorCode);
 	router.push({
-		path: `/search/${scanCode}`,
+		path: `/search/${vendorCode}`,
+		query: { product: JSON.stringify(product) }
 	});
 };
+
+// TODO: открывать товары по скан-коду, НЕ по коду вендора
 
 const loadFromScroll = async (productName: string) => {
 	loading.value = true;
@@ -320,7 +332,7 @@ const loadFromScroll = async (productName: string) => {
 			shouldEncodeUrlParams: false,
 		});
 
-		console.log("PRODUCTS_DATA", products_data);
+		console.log("PRODUCTS_DATA159", products_data.data);
 	} catch (error) {
 		console.log("Error from fetching:", error);
 	} finally {
@@ -338,13 +350,26 @@ const loadFromScroll = async (productName: string) => {
 		loading.value = false;
 		return products;
 	}
+	if (products_data.data.length === 0) {
+		// allTasksLoaded.value = true;
+		loading.value = false;
+	}
 
 
 };
 
+const last_searched_string = ref("");
+
+const attributeType = ref('OriginalCode');
+
 const handleInput = async (event: { target: { value: string } }) => {
 	// loading.value = true;
 
+	// Если искали до этого какой то продукт, очистить историю поиска и сбросить начальное значение пагинации
+	if (typedProductName.value !== event.target.value) {
+		products.value = [];
+		start.value = 0;
+	}
 
 	if (event.target.value === "") {
 		products.value = [];
@@ -352,7 +377,10 @@ const handleInput = async (event: { target: { value: string } }) => {
 		loading.value = false;
 		start.value = 0;
 		return null;
-	} else typedProductName.value = event.target.value;
+	} else {
+		typedProductName.value = event.target.value;
+		allTasksLoaded.value = false;
+	}
 
 	console.log(event.target.value);
 
@@ -360,9 +388,11 @@ const handleInput = async (event: { target: { value: string } }) => {
 
 	try {
 		task_data = await HttpService.post({
-			url: `${API_URL}/SearchProduct/v3/`,
+			url: `${API_URL}/FindProduct/v3/`,
 			params: {
 				searchString: event.target.value,
+				attribute: attributeType.value,
+				searchType: attributeType.value === 'Barcode' || attributeType.value === 'OriginalCode' ? "1" : "0",
 				start: start.value.toString(),
 				limit: limit.value.toString(),
 			},
@@ -385,65 +415,13 @@ const handleInput = async (event: { target: { value: string } }) => {
 
 		// console.log(task_data?.data);
 		loading.value = false;
-		return products;
 	}
-	;
+	if (task_data.data.length === 0) {
+		allTasksLoaded.value = true;
+		start.value = 0;
+	}
 };
 
-const filterTasksByStatus = (
-	event: { target: { value: string } },
-	task_status: string,
-) => {
-	loading.value = true;
-	// const query = event.target.value.toLowerCase();
-	results.value = tasks.value.filter(
-		(task) => task.status.toLowerCase().indexOf(task_status) > -1,
-	);
-
-	loading.value = false;
-};
-
-const filterTasksByImportant = () => {
-	loading.value = true;
-	// const query = event.target.value.toLowerCase();
-	results.value = tasks.value.filter(
-		(task) => task.isImportant === "IMPORTANT",
-	);
-	loading.value = false;
-};
-
-const filterOverdue = () => {
-	loading.value = true;
-	// const query = event.target.value.toLowerCase();
-	results.value = tasks.value.filter(
-		(task) => task.dateDeadline < Date.now() / 1e3,
-	);
-
-	loading.value = false;
-};
-
-const filterActual = () => {
-	loading.value = true;
-	// const query = event.target.value.toLowerCase();
-	results.value = tasks.value.filter(
-		(task) => task.dateDeadline > Date.now() / 1e3,
-	);
-
-	loading.value = false;
-};
-
-const filterOnlyForMe = () => {
-	loading.value = true;
-	console.log(store.getters["getUserId"]);
-	results.value = tasks.value.filter(
-		(task) => task.authorId === store.getters["getUserId"],
-	);
-	loading.value = false;
-};
-
-const resetFilters = () => {
-	results.value = tasks.value;
-};
 </script>
 
 <style scoped>

@@ -151,7 +151,7 @@ import {
 
 import { HttpService, API_URL } from "../../../services/http.service";
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Task } from "@/interfaces/task.interface";
 import store from "@/store";
@@ -161,7 +161,7 @@ import { Product } from "@/interfaces/product.interface";
 import { TaskService } from "@/services/task.service";
 
 const router = useRouter();
-
+const route = useRoute();
 const tasks = ref<Task[]>([]);
 
 const product = ref<Product>();
@@ -225,7 +225,15 @@ eventBus.on("taskUpdated", () => {
 );
 
 onMounted(async () => {
-    fetchTaskData(scancode);
+    // Ошибка в том, что свойство state не существует в типе RouteLocationNormalizedLoadedGeneric
+    // Нужно использовать route.params для получения параметров маршрута
+    // Или передавать данные через query параметры route.query
+    console.log("route.query:", route.query);
+    if (route.query && route.query.product) {
+        product.value = JSON.parse(route.query.product as string);
+    } else {
+        fetchTaskData(scancode);
+    }
 });
 
 const getTimeRemaining = (timestamp: number): string | false => {

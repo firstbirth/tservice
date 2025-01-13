@@ -296,8 +296,11 @@ const fetchTasks = async () => {
 		const data = await TaskService.getTasks(
 			store.getters['isAdmin'] ? undefined : store.getters["getUserId"],
 			start.value,
-			limit.value
+			limit.value,
+			store.getters['isAdmin'] ? undefined : "performer"
 		);
+
+		console.log("getTasks:", data);
 
 		if (data && data.length > 0) {
 			tasks.value.push(...data);
@@ -328,7 +331,8 @@ const fetchTasks1 = async () => {
 		const data = await TaskService.getTasks(
 			store.getters['isAdmin'] ? undefined : store.getters["getUserId"],
 			start.value,
-			limit.value
+			limit.value,
+			store.getters['isAdmin'] ? undefined : "performer"
 		);
 
 		if (data && data.length > 0) {

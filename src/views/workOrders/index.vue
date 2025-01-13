@@ -259,7 +259,7 @@ const hideFilterTabs = ref(false);
 const tasks = ref<Task[]>([]);
 const results = ref<WorkOrder[]>([]);
 const loading = ref(true);
-
+const search_string = ref("");
 let selectedStatuses: string[] = [];
 
 const statusColors: { [key: string]: string } = {
@@ -371,13 +371,19 @@ const loadMoreTasks = async (event: CustomEvent) => {
 		(event.target as HTMLIonInfiniteScrollElement).complete();
 		(event.target as HTMLIonInfiniteScrollElement).disabled = true;
 	} else {
-		await fetchTasks();
+		if (search_string.value !== "") {
+			console.log("loading more tasks");
+			await loadMoreFromSearch();
+		} else {
+			await fetchTasks();
 
-		if (isActiveFilter) {
+			if (isActiveFilter) {
 
-			filterTasksByStates();
+				filterTasksByStates();
+			}
+			(event.target as HTMLIonInfiniteScrollElement).complete();
 		}
-		(event.target as HTMLIonInfiniteScrollElement).complete();
+
 	}
 };
 
@@ -407,9 +413,11 @@ const handleInput = async (event: { target: { value: string } }) => {
 	let order_data;
 
 	// console.log("Event target value", event.target.value)
+	search_string.value = event.target.value;
 
 	try {
-		order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, limit.value, event.target.value);
+		order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, 100, event.target.value);
+		console.log("oDATA:", order_data);
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {
@@ -426,12 +434,49 @@ const handleInput = async (event: { target: { value: string } }) => {
 		results.value.push(...order_data);
 
 		// console.log("Products:", workOrders.value);
-		start.value += limit.value;
-
+		start.value = 100;
+		console.log("we are here");
 		loading.value = false;
 		return workOrders;
+	} else {
+		console.log("we are here234");
+		allWorkOrdersLoaded.value = true;
 	}
 	;
+};
+
+const loadMoreFromSearch = async () => {
+	loading.value = true;
+
+	let order_data;
+
+
+	try {
+		order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, limit.value, search_string.value);
+		console.log("oDATA_more:", order_data);
+	} catch (error) {
+		console.error("Error:", error);
+	} finally {
+		loading.value = false;
+	}
+
+	// console.log("TASK DATA:", order_data)
+
+	if (order_data && order_data.length > 0) {
+		workOrders.value.push(...order_data);
+		results.value.push(...order_data);
+
+		// console.log("Products:", workOrders.value);
+		start.value += limit.value;
+		console.log("start.value:", start.value);
+		console.log("limit.value:", limit.value);
+		loading.value = false;
+
+	} else {
+		// search_string.value = "";
+	}
+	return workOrders;
+
 };
 
 const filterTasksByStates = () => {

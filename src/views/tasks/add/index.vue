@@ -230,19 +230,21 @@ const closeModal = () => {
 };
 
 const submitTask = async () => {
+	
+
 	let _data = {
 		dateCreated: Math.round(new Date(Date.now()).getTime() / 1000),
 		dateDeadline: task_deadline.value.toFixed(2),
 		author: store.state.crutches ? "Администратор" : task_author.value,
 		authorId: store.state.crutches ? 1 : task_author_id.value,
-		performer: task_performer.value,
+		performer: [task_performer.value],
 		performerId: task_performer_id.value,
 		description: task_description.value,
 		status: "NEW",
 		isImportant: task_is_important.value ? "IMPORTANT" : "ORDINARY",
 	};
 
-	console.log(_data);
+	console.log("MYDATAHERE:", _data);
 
 	await TaskService.createTask(_data).then((response) => {
 		if (response.success) {
