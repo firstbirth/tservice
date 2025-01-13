@@ -227,6 +227,8 @@ import {
 	IonModal,
 	IonFooter,
 	IonSpinner,
+	IonItem,
+	IonDatetime,
 } from "@ionic/vue";
 
 import { IonSearchbarCustomEvent } from '@ionic/core';
@@ -484,6 +486,21 @@ const filterOnlyForMe = () => {
 
 const resetFilters = () => {
 	results.value = tasks.value;
+};
+
+const startDate = ref<string | null>(null);
+const endDate = ref<string | null>(null);
+
+const filterTasksByDate = () => {
+	loading.value = true;
+	const startTimestamp = startDate.value ? new Date(startDate.value).getTime() / 1e3 : 0;
+	const endTimestamp = endDate.value ? new Date(endDate.value).getTime() / 1e3 : Date.now() / 1e3;
+
+	results.value = tasks.value.filter(
+		(task) => task.dateCreated >= startTimestamp && task.dateCreated <= endTimestamp
+	);
+
+	loading.value = false;
 };
 </script>
 

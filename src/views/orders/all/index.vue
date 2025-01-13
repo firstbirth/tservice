@@ -15,6 +15,13 @@
 			<ion-toolbar v-if="!connectionError">
 				<ion-searchbar inputmode="search" class="custom" placeholder="Поиск" :debounce="350" :animated="true"
 							   @ionInput="handleInput($event)"></ion-searchbar>
+				<ion-item justify="space-between">
+					<ion-label>Срок</ion-label>
+					<ion-datetime-button
+						datetime="datetime"
+						:show-default-buttons="true"
+					></ion-datetime-button>
+				</ion-item>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
@@ -192,6 +199,8 @@ import {
 	IonRefresherContent,
 	IonFooter,
 	IonSpinner,
+	IonItem,
+	IonDatetime, IonDatetimeButton,
 } from "@ionic/vue";
 import { cogOutline, notificationsOutline, add, key } from "ionicons/icons";
 
@@ -499,6 +508,23 @@ const filterOnlyForMe = () => {
 
 const resetFilters = () => {
 	results.value = tasks.value;
+};
+
+// Добавляем реактивные переменные для хранения дат
+const startDate = ref<string | null>(null);
+const endDate = ref<string | null>(null);
+
+// Функция для фильтрации заказов по дате
+const filterOrdersByDate = () => {
+	if (startDate.value && endDate.value) {
+		const start = new Date(startDate.value).getTime();
+		const end = new Date(endDate.value).getTime();
+
+		results.value = allOrders.value.filter(order => {
+			const orderDate = new Date(order.date).getTime();
+			return orderDate >= start && orderDate <= end;
+		});
+	}
 };
 </script>
 
