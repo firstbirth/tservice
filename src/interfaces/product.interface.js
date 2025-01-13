@@ -1,0 +1,2 @@
+// product.interface.ts
+export {};

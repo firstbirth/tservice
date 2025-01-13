@@ -1,0 +1,2 @@
+// user.interface.ts
+export {};

@@ -1,0 +1,2 @@
+// http.interface.ts
+export {};

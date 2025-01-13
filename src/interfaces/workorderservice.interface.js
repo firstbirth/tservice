@@ -1,0 +1,2 @@
+// workorderservice.interface.ts
+export {};
