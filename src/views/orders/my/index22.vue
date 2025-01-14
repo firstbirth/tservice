@@ -10,14 +10,12 @@
 						<ion-icon slot="icon-only" :ios="cogOutline" :md="cogOutline"></ion-icon>
 					</ion-button>
 				</ion-buttons>
-				<ion-title>Все заказы</ion-title>
+				<ion-title>Ваши заказы</ion-title>
 			</ion-toolbar>
-			<ion-toolbar v-if="!connectionError">
-				<Test :results="results" :all-orders="allOrders" :is-filter-active="isDateFilterActive"
-					  :active-date-range="dateRange" @update:results="updateResults"
-					  @update:isFilterActive="(value) => isDateFilterActive = value"
-					  @update:activeDateRange="(range) => dateRange = range" />
-			</ion-toolbar>
+			<ion-item>
+					<ion-datetime v-model="startDateOne" presentation="date" :multiple="true" @ionChange="handleDateChange"></ion-datetime>
+			</ion-item>
+				<ion-button @click="filterOrdersByDate">Фильтровать по дате</ion-button>
 		</ion-header>
 		<ion-content :fullscreen="true">
 			<ion-refresher slot="fixed" :pull-factor="0.5" :pull-min="100" :pull-max="200"
@@ -30,7 +28,6 @@
 			<div v-if="loading" class="spinner-container">
 				<ion-spinner name="crescent"></ion-spinner>
 			</div>
-
 
 			<section class="content" v-touch:swipe.left="() => {
                 console.log('swipe left');
@@ -54,7 +51,6 @@
 								</ion-col>
 							</ion-row>
 						</ion-card-title>
-
 					</ion-card-header>
 
 					<ion-card-content>
@@ -72,7 +68,6 @@
 
 									<!-- Текст с отступом -->
 									<ion-label style="margin-left: .25rem">
-										Клиент:
 										{{ truncatedClientName(order.client) }}
 									</ion-label>
 								</ion-chip>
@@ -104,15 +99,14 @@
 
 								</ion-chip>
 							</ion-col>
-
-							<ion-col size="auto" class="ion-no-padding">
-								<ion-chip class="ion-no-margin ion-no-padding" color="black">
-									<ion-label>Комментарий: {{ order.comment ? order.comment : "не указан"
-										}}
-									</ion-label>
-								</ion-chip>
-							</ion-col>
 						</ion-row>
+						<ion-col size="auto" class="ion-no-padding">
+							<ion-chip class="ion-no-margin ion-no-padding" color="black">
+								<ion-label>Комментарий: {{ order.comment ? order.comment : "не указан"
+									}}
+								</ion-label>
+							</ion-chip>
+						</ion-col>
 					</ion-card-content>
 				</ion-card>
 
@@ -153,7 +147,8 @@
 		</ion-footer>
 
 		<ion-footer v-if="is_admin">
-			<ion-segment color="danger" value="all">
+			<
+			<ion-segment color="danger" value="my">
 				<ion-segment-button value="all" @click="openAllOrders">
 					Все
 				</ion-segment-button>
@@ -194,11 +189,9 @@ import {
 	IonRefresherContent,
 	IonFooter,
 	IonSpinner,
-	IonItem,
-	IonDatetime, IonDatetimeButton,
 } from "@ionic/vue";
-import { cogOutline, notificationsOutline, add, key, filterOutline } from "ionicons/icons";
-import Test from "@/views/orders/my/test.vue";
+import { cogOutline, notificationsOutline, add, key } from "ionicons/icons";
+
 import { useRouter } from "vue-router";
 
 import { ref, onMounted, computed } from "vue";
@@ -207,20 +200,9 @@ import { chevronDownCircleOutline } from "ionicons/icons";
 
 const router = useRouter();
 
-// Добавьте функцию для обновления результатов
-const updateResults = (newResults: ClientOrder[]) => {
-	results.value = newResults;
-};
 const openSettings = () => {
 	router.push("/settings");
 };
-
-const truncatedClientName = (clientName: string) => {
-	return clientName.length > 25
-		? clientName.slice(0, 25) + "..."
-		: clientName;
-};
-
 
 const openNotifications = () => {
 	router.push("/notifications");
@@ -246,16 +228,13 @@ const openClientOrder = (clientOrderId: number, userId:number) => {
 import { HttpService, API_URL } from "../../../services/http.service";
 import { Task } from "@/interfaces/task.interface";
 import { ClientOrder } from "@/interfaces/client-order.interface";
-import { useStore } from "vuex"; // Импортируем хук useStore
-
 
 import store from "@/store";
 import { ClientOrderService } from "@/services/client-order.service";
-import { WorkOrderService } from "@/services/work-order.service";
 
 const connectionError = ref(false);
 
-var isActiveFilter = <boolean>false;
+let isActiveFilter = <boolean>false;
 
 const hideFilterTabs = ref(false);
 
@@ -319,62 +298,93 @@ function handleChange($event) {
 	console.log("Selected statuses array:", selectedStatuses);
 }
 
-// Добавляем переменную для отслеживания последней загруженной страницы
-const currentPage = ref(0);
+const truncatedClientName = (clientName: string) => {
+	return clientName.length > 25
+		? clientName.slice(0, 25) + "..."
+		: clientName;
+};
 
-// Добавим флаг для отслеживания ситуации, когда новые данные не прошли фильтр
-const noMoreFilteredResults = ref(false);
+// Добавляем реактивные переменные для хранения дат
+const startDate = ref<string[]>([]);
+const endDate = ref<string | null>(null);
 
-// Обновляем функцию fetchOrders
+// Объявляем объект для хранения дат
+const dateRange = ref({
+	start_date: null,
+	end_date: null
+});
+
+const handleDateChange = (event: CustomEvent) => {
+	const selectedDates = event.detail.value as string[];
+	
+	if (selectedDates.length > 1) {
+		const dates: string[] = [];
+		const start = new Date(Math.min(...selectedDates.map(date => new Date(date).getTime())));
+		const end = new Date(Math.max(...selectedDates.map(date => new Date(date).getTime())));
+		
+		const currentDate = new Date(start);
+		while (currentDate <= end) {
+			dates.push(currentDate.toISOString().split('T')[0]);
+			currentDate.setDate(currentDate.getDate() + 1);
+		}
+		
+		startDate.value = dates;
+	} else {
+		startDate.value = selectedDates;
+	}
+	
+	if (startDate.value.length > 0) {
+		dateRange.value.start_date = new Date(startDate.value[0]).getTime() / 1000;
+		dateRange.value.end_date = new Date(startDate.value[startDate.value.length - 1]).getTime() / 1000;
+		console.log('Диапазон дат:', dateRange.value);
+	}
+};
+
+// Добавляем флаг для отслеживания активного фильтра по дате
+const isDateFilterActive = ref(false);
+
+// Обновляем функцию фильтрации по датам
+const filterOrdersByDate = () => {
+	if (dateRange.value.start_date && dateRange.value.end_date) {
+		isDateFilterActive.value = true;
+		results.value = allOrders.value.filter(order => {
+			const orderTimestamp = order.date;
+			return orderTimestamp >= dateRange.value.start_date! && 
+				   orderTimestamp <= dateRange.value.end_date!;
+		});
+	} else {
+		isDateFilterActive.value = false;
+		results.value = allOrders.value;
+	}
+};
+
 const fetchOrders = async () => {
+	results.value = [];
 	loading.value = true;
+
+	// workOrders.value = [];
+
 	let task_data;
 
 	try {
-		task_data = await ClientOrderService.getClientOrders(undefined, start.value, limit.value);
-		console.log("task_data:", task_data);
-		if (task_data && task_data.length > 0) {
-			// Если это первая загрузка или обновление
-			if (start.value === 0) {
-				allOrders.value = task_data;
-				results.value = task_data;
-				noMoreFilteredResults.value = false; // Сбрасываем флаг при первой загрузке
-			} else {
-				// Добавляем новые заказы к существующим
-				allOrders.value.push(...task_data);
-				
-				// Если есть активный фильтр по дате, применяем его к новым данным
-				if (isDateFilterActive.value && dateRange.value.start_date && dateRange.value.end_date) {
-					const filteredNewOrders = task_data.filter(order => {
-						const orderTimestamp = order.date;
-						return orderTimestamp >= dateRange.value.start_date! && 
-							   orderTimestamp <= dateRange.value.end_date!;
-					});
-
-					// Если после фильтрации не осталось результатов, устанавливаем флаг
-					if (filteredNewOrders.length === 0) {
-						noMoreFilteredResults.value = true;
-						allWorkOrdersLoaded.value = true; // Останавливаем дальнейшую подгрузку
-					} else {
-						results.value.push(...filteredNewOrders);
-					}
-				} else {
-					results.value.push(...task_data);
-				}
-			}
-			
-			start.value += limit.value;
-			currentPage.value = Math.floor(start.value / limit.value);
-		} else {
-			allWorkOrdersLoaded.value = true;
-		}
+		task_data = await ClientOrderService.getClientOrders(store.getters["getUserId"] === 0 ? 1 : store.getters["getUserId"], 10);
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {
 		loading.value = false;
 	}
-};
 
+	if (task_data && task_data.length > 0) {
+		allOrders.value.push(...task_data);
+		results.value.push(...task_data);
+
+		// console.log("Products:", workOrders.value);
+		start.value += limit.value;
+
+		loading.value = false;
+		return allOrders;
+	}
+};
 const fetchOrdersForMe = async () => {
 	loading.value = true;
 
@@ -383,8 +393,9 @@ const fetchOrdersForMe = async () => {
 	let task_data;
 
 	try {
-		task_data = await ClientOrderService.getClientOrders(store.getters["getUserId"], start.value, limit.value);
-		console.log(store.getters["getUserId"] + 1);
+		task_data = await ClientOrderService.getClientOrders(store.getters['getUserId'] === 0 ? 1 : store.state.userid, start.value, limit.value);
+		console.log(task_data);
+		console.log(111111);
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {
@@ -399,77 +410,48 @@ const fetchOrdersForMe = async () => {
 		console.log("RESULTS", results);
 		// console.log("Products:", workOrders.value);
 		start.value += limit.value;
+
+		if (task_data.length < limit.value) {
+			allWorkOrdersLoaded.value = true; // Устанавливаем флаг, что все заказы загружены
+		}
+
 	} else {
+		// Если заказы не были загружены, устанавливаем флаг
 		allWorkOrdersLoaded.value = true;
 	}
-
 	loading.value = false;
 	return allOrders;
 };
 
 onMounted(() => {
-	store.getters["isAdmin"] === true ? fetchOrders() : fetchOrdersForMe();
+	fetchOrdersForMe();
 });
-
 
 const handleRefresh = (event: CustomEvent) => {
 	setTimeout(() => {
 		tasks.value = [];
 		results.value = [];
-		allOrders.value = [];
 		start.value = 0;
-		currentPage.value = 0;
-		allWorkOrdersLoaded.value = false;
-		isDateFilterActive.value = false;
-		noMoreFilteredResults.value = false; // Сбрасываем флаг при обновлении
-		dateRange.value = {
-			start_date: null,
-			end_date: null
-		};
-
-		// Важно: сбрасываем состояние infinite scroll
-		const infiniteScroll = document.querySelector('ion-infinite-scroll') as HTMLIonInfiniteScrollElement;
-		if (infiniteScroll) {
-			infiniteScroll.disabled = false;
-		}
-	
-		fetchOrders();
+		fetchOrdersForMe();
 		loading.value = false;
-		(event.target as HTMLIonInfiniteScrollElement).complete();
+		event.target.complete();
 	}, 150);
 };
 
-// Добавим новые реактивные переменные для отслеживания состояния фильтра
-const isDateFilterActive = ref(false);
-const dateRange = ref<{
-	start_date: number | null;
-	end_date: number | null;
-}>({
-	start_date: null,
-	end_date: null
-});
-
-// Обновляем функцию loadMoreTasks
 const loadMoreTasks = async (event: CustomEvent) => {
-	const infiniteScroll = event.target as HTMLIonInfiniteScrollElement;
-	
-	// Проверяем оба флага
-	if (allWorkOrdersLoaded.value || noMoreFilteredResults.value) {
-		infiniteScroll.complete();
-		infiniteScroll.disabled = true;
-		return;
-	}
+	if (allWorkOrdersLoaded.value) {
+		(event.target as HTMLIonInfiniteScrollElement).complete();
+		(event.target as HTMLIonInfiniteScrollElement).disabled = true;
+	} else {
 
-	try {
-		await fetchOrders();
-		// Если после загрузки все еще нет результатов, отключаем infinite scroll
-		if (results.value.length === 0) {
-			infiniteScroll.disabled = true;
+		await fetchOrdersForMe();
+
+		console.log("hihiih");
+		if (isActiveFilter) {
+
+			filterTasksByStates();
 		}
-	} catch (error) {
-		console.error("Error loading more tasks:", error);
-	} finally {
-		infiniteScroll.complete();
+		(event.target as HTMLIonInfiniteScrollElement).complete();
 	}
 };
 
@@ -496,40 +478,33 @@ const formatDateToLocaleString = (
 const handleInput = async (event: { target: { value: string } }) => {
 	loading.value = true;
 
-	let order_data;
+	results.value = [];
+	console.log(event.target.value);
 
-	console.log("Event target value", typeof event.target.value);
+	let task_data;
 
 	try {
-		if (event.target.value === "") {
-			await fetchOrders();
-		} else {
-			order_data = await ClientOrderService.getClientOrderByOID(store.state.userid === 0 ? 1 : store.state.userid, event.target.value);
-			console.log("order_data:", order_data);
-		}
-
+		task_data = await HttpService.post({
+			url: `${API_URL}/SearchProduct/v3/`,
+			params: { searchString: event.target.value },
+		});
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {
 		loading.value = false;
 	}
 
-	// console.log("TASK DATA:", order_data)
+	if (task_data && task_data.data.length > 0) {
+		products.value.push(...task_data.data);
 
-	if (order_data && order_data.length > 0) {
-		allOrders.value = [];
-		results.value = [];
+		console.log("Products:", products.value);
 
-		allOrders.value.push(...order_data);
-		results.value.push(...order_data); // подгружающиеся данные
 
-		console.log("ALLORDERS11111:", allOrders);
-		console.log("RESULTS111111", results);
-		// console.log("Products:", workOrders.value);
-
-	} else {
-		allWorkOrdersLoaded.value = false;
+		// console.log(task_data?.data);
+		loading.value = false;
+		return products;
 	}
+	;
 };
 
 const filterTasksByStates = () => {
@@ -557,58 +532,6 @@ const filterOnlyForMe = () => {
 
 const resetFilters = () => {
 	results.value = tasks.value;
-};
-
-// Добавляем состояние для модального окна фильтра
-const isFilterModalOpen = ref(false);
-
-// Функция для открытия/закрытия модального окна фильтра
-const toggleFilterModal = () => {
-	isFilterModalOpen.value = !isFilterModalOpen.value;
-};
-
-// Добавляем реактивные переменные для хранения дат
-const startDate = ref<string[]>([]);
-
-// Функция для обработки изменения даты
-const handleDateChange = (event: CustomEvent) => {
-	const selectedDates = event.detail.value as string[];
-	
-	if (selectedDates.length > 1) {
-		const dates: string[] = [];
-		const start = new Date(Math.min(...selectedDates.map(date => new Date(date).getTime())));
-		const end = new Date(Math.max(...selectedDates.map(date => new Date(date).getTime())));
-		
-		const currentDate = new Date(start);
-		while (currentDate <= end) {
-			dates.push(currentDate.toISOString().split('T')[0]);
-			currentDate.setDate(currentDate.getDate() + 1);
-		}
-		
-		startDate.value = dates;
-	} else {
-		startDate.value = selectedDates;
-	}
-	
-	if (startDate.value.length > 0) {
-		dateRange.value.start_date = new Date(startDate.value[0]).getTime() / 1000;
-		dateRange.value.end_date = new Date(startDate.value[startDate.value.length - 1]).getTime() / 1000;
-		console.log('Диапазон дат:', dateRange.value);
-	}
-};
-
-// Функция для фильтрации заказов по дате
-const filterOrdersByDate = () => {
-	if (dateRange.value.start_date && dateRange.value.end_date) {
-		results.value = allOrders.value.filter(order => {
-			const orderTimestamp = order.date;
-			return orderTimestamp >= dateRange.value.start_date! && 
-				   orderTimestamp <= dateRange.value.end_date!;
-		});
-	} else {
-		results.value = allOrders.value;
-	}
-	toggleFilterModal();
 };
 </script>
 

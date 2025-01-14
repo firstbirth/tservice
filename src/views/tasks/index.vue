@@ -16,6 +16,15 @@
 			<ion-toolbar v-if="!connectionError">
 				<ion-searchbar inputmode="search" class="custom" placeholder="Поиск" :debounce="350" :animated="true"
 					@ionInput="handleInput"></ion-searchbar>
+				<Test 
+					:results="results"
+					:all-orders="tasks"
+					:is-filter-active="isFilterActive"
+					:active-date-range="activeDateRange"
+					@update:results="updateResults"
+					@update:is-filter-active="updateFilterActive"
+					@update:active-date-range="updateDateRange"
+				/>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
@@ -227,8 +236,6 @@ import {
 	IonModal,
 	IonFooter,
 	IonSpinner,
-	IonItem,
-	IonDatetime,
 } from "@ionic/vue";
 
 import { IonSearchbarCustomEvent } from '@ionic/core';
@@ -240,6 +247,8 @@ import { useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 
 import { chevronDownCircleOutline } from "ionicons/icons";
+
+import Test from '@/views/orders/my/test.vue';
 
 const router = useRouter();
 
@@ -293,7 +302,7 @@ function sortTasksByDateCreated(tasks: Task[]): Task[] {
 }
 
 const fetchTasks = async () => {
-	loading.value = false
+	loading.value = true;
 	try {
 		const data = await TaskService.getTasks(
 			store.getters['isAdmin'] ? undefined : store.getters["getUserId"],
@@ -302,19 +311,23 @@ const fetchTasks = async () => {
 			store.getters['isAdmin'] ? undefined : "performer"
 		);
 
-		console.log("getTasks:", data);
-
 		if (data && data.length > 0) {
+			// Добавляем новые задачи в общий массив
 			tasks.value.push(...data);
-			results.value.push(...data);
+			
+			// Если активен фильтр по датам, применяем его только к новым данным
+			if (isFilterActive.value && activeDateRange.value.start_date && activeDateRange.value.end_date) {
+				const filteredNewTasks = data.filter(task => 
+					task.dateCreated >= activeDateRange.value.start_date! && 
+					task.dateCreated <= activeDateRange.value.end_date!
+				);
+				results.value.push(...filteredNewTasks);
+			} else {
+				// Если фильтр не активен, добавляем все новые задачи
+				results.value.push(...data);
+			}
+			
 			start.value += limit.value;
-
-			// TODO: Сортировку надо бы реализовать на бэкенде
-
-			// tasks.value = sortTasksByDateCreated(tasks.value);
-			// results.value = sortTasksByDateCreated(results.value);
-
-			console.log(results.value);
 		} else {
 			allTasksLoaded.value = true;
 		}
@@ -367,12 +380,30 @@ onMounted(() => {
 
 const handleRefresh = (event: CustomEvent) => {
 	setTimeout(() => {
+		// Сбрасываем все состояния
 		tasks.value = [];
 		results.value = [];
 		start.value = 0;
-		fetchTasks1();
+		allTasksLoaded.value = false;
+		
+		// Сбрасываем состояние фильтра по датам
+		isFilterActive.value = false;
+		activeDateRange.value = {
+			start_date: null,
+			end_date: null
+		};
+		
+		// Включаем обратно бесконечный скролл
+		const infiniteScroll = document.querySelector('ion-infinite-scroll') as HTMLIonInfiniteScrollElement;
+		if (infiniteScroll) {
+			infiniteScroll.disabled = false;
+		}
+		
+		// Загружаем данные заново
+		fetchTasks();
+		
 		console.log("handleRefresh");
-		event.target.complete();
+		event.target!.complete();
 	}, 150);
 };
 
@@ -380,10 +411,34 @@ const loadMoreTasks = async (event: CustomEvent) => {
 	if (allTasksLoaded.value) {
 		(event.target as HTMLIonInfiniteScrollElement).complete();
 		(event.target as HTMLIonInfiniteScrollElement).disabled = true;
-	} else {
-		await fetchTasks();
-		(event.target as HTMLIonInfiniteScrollElement).complete();
+		return;
 	}
+
+	await fetchTasks();
+
+	// Если активен фильтр по датам, применяем его к новым данным
+	if (isFilterActive.value && activeDateRange.value.start_date && activeDateRange.value.end_date) {
+		const currentResultsLength = results.value.length;
+		
+		// Фильтруем только новые задачи
+		const newTasks = tasks.value.slice(currentResultsLength);
+		const filteredNewTasks = newTasks.filter(task => 
+			task.dateCreated >= activeDateRange.value.start_date! && 
+			task.dateCreated <= activeDateRange.value.end_date!
+		);
+
+		// Если среди новых задач нет подходящих по дате, отключаем дальнейшую загрузку
+		if (filteredNewTasks.length === 0) {
+			allTasksLoaded.value = true;
+			(event.target as HTMLIonInfiniteScrollElement).disabled = true;
+			console.log('Нет новых задач, соответствующих фильтру по датам');
+		} else {
+			// Добавляем отфильтрованные новые задачи к результатам
+			results.value = [...results.value, ...filteredNewTasks];
+		}
+	}
+
+	(event.target as HTMLIonInfiniteScrollElement).complete();
 };
 
 const formatDateToLocaleString = (
@@ -488,19 +543,22 @@ const resetFilters = () => {
 	results.value = tasks.value;
 };
 
-const startDate = ref<string | null>(null);
-const endDate = ref<string | null>(null);
+const isFilterActive = ref(false);
+const activeDateRange = ref({
+	start_date: null as number | null,
+	end_date: null as number | null
+});
 
-const filterTasksByDate = () => {
-	loading.value = true;
-	const startTimestamp = startDate.value ? new Date(startDate.value).getTime() / 1e3 : 0;
-	const endTimestamp = endDate.value ? new Date(endDate.value).getTime() / 1e3 : Date.now() / 1e3;
+const updateResults = (newResults: Task[]) => {
+	results.value = newResults;
+};
 
-	results.value = tasks.value.filter(
-		(task) => task.dateCreated >= startTimestamp && task.dateCreated <= endTimestamp
-	);
+const updateFilterActive = (value: boolean) => {
+	isFilterActive.value = value;
+};
 
-	loading.value = false;
+const updateDateRange = (range: { start_date: number | null; end_date: number | null }) => {
+	activeDateRange.value = range;
 };
 </script>
 

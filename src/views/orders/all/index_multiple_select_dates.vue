@@ -13,10 +13,12 @@
 				<ion-title>Все заказы</ion-title>
 			</ion-toolbar>
 			<ion-toolbar v-if="!connectionError">
-				<Test :results="results" :all-orders="allOrders" :is-filter-active="isDateFilterActive"
-					  :active-date-range="dateRange" @update:results="updateResults"
-					  @update:isFilterActive="(value) => isDateFilterActive = value"
-					  @update:activeDateRange="(range) => dateRange = range" />
+				<ion-searchbar inputmode="search" class="custom" placeholder="Поиск" :debounce="350" :animated="true"
+							   @ionInput="handleInput($event)"></ion-searchbar>
+				<ion-item>
+					<ion-datetime v-model="startDate" presentation="date" :multiple="true" @ionChange="handleDateChange"></ion-datetime>
+				</ion-item>
+				<ion-button @click="filterOrdersByDate">Фильтровать по дате</ion-button>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
@@ -198,7 +200,7 @@ import {
 	IonDatetime, IonDatetimeButton,
 } from "@ionic/vue";
 import { cogOutline, notificationsOutline, add, key, filterOutline } from "ionicons/icons";
-import Test from "@/views/orders/my/test.vue";
+
 import { useRouter } from "vue-router";
 
 import { ref, onMounted, computed } from "vue";
@@ -207,10 +209,6 @@ import { chevronDownCircleOutline } from "ionicons/icons";
 
 const router = useRouter();
 
-// Добавьте функцию для обновления результатов
-const updateResults = (newResults: ClientOrder[]) => {
-	results.value = newResults;
-};
 const openSettings = () => {
 	router.push("/settings");
 };
@@ -322,9 +320,6 @@ function handleChange($event) {
 // Добавляем переменную для отслеживания последней загруженной страницы
 const currentPage = ref(0);
 
-// Добавим флаг для отслеживания ситуации, когда новые данные не прошли фильтр
-const noMoreFilteredResults = ref(false);
-
 // Обновляем функцию fetchOrders
 const fetchOrders = async () => {
 	loading.value = true;
@@ -332,32 +327,25 @@ const fetchOrders = async () => {
 
 	try {
 		task_data = await ClientOrderService.getClientOrders(undefined, start.value, limit.value);
-		console.log("task_data:", task_data);
+		console.log(task_data);
+		
 		if (task_data && task_data.length > 0) {
 			// Если это первая загрузка или обновление
 			if (start.value === 0) {
 				allOrders.value = task_data;
 				results.value = task_data;
-				noMoreFilteredResults.value = false; // Сбрасываем флаг при первой загрузке
 			} else {
 				// Добавляем новые заказы к существующим
 				allOrders.value.push(...task_data);
 				
-				// Если есть активный фильтр по дате, применяем его к новым данным
+				// Если есть активный фильтр по дате, применяем его
 				if (isDateFilterActive.value && dateRange.value.start_date && dateRange.value.end_date) {
 					const filteredNewOrders = task_data.filter(order => {
 						const orderTimestamp = order.date;
 						return orderTimestamp >= dateRange.value.start_date! && 
 							   orderTimestamp <= dateRange.value.end_date!;
 					});
-
-					// Если после фильтрации не осталось результатов, устанавливаем флаг
-					if (filteredNewOrders.length === 0) {
-						noMoreFilteredResults.value = true;
-						allWorkOrdersLoaded.value = true; // Останавливаем дальнейшую подгрузку
-					} else {
-						results.value.push(...filteredNewOrders);
-					}
+					results.value.push(...filteredNewOrders);
 				} else {
 					results.value.push(...task_data);
 				}
@@ -421,55 +409,30 @@ const handleRefresh = (event: CustomEvent) => {
 		currentPage.value = 0;
 		allWorkOrdersLoaded.value = false;
 		isDateFilterActive.value = false;
-		noMoreFilteredResults.value = false; // Сбрасываем флаг при обновлении
-		dateRange.value = {
-			start_date: null,
-			end_date: null
-		};
-
-		// Важно: сбрасываем состояние infinite scroll
-		const infiniteScroll = document.querySelector('ion-infinite-scroll') as HTMLIonInfiniteScrollElement;
-		if (infiniteScroll) {
-			infiniteScroll.disabled = false;
-		}
-	
+		isActiveFilter = false;
 		fetchOrders();
 		loading.value = false;
 		(event.target as HTMLIonInfiniteScrollElement).complete();
 	}, 150);
 };
 
-// Добавим новые реактивные переменные для отслеживания состояния фильтра
+// Добавляем флаг для отслеживания активного фильтра по дате
 const isDateFilterActive = ref(false);
-const dateRange = ref<{
-	start_date: number | null;
-	end_date: number | null;
-}>({
-	start_date: null,
-	end_date: null
-});
 
 // Обновляем функцию loadMoreTasks
 const loadMoreTasks = async (event: CustomEvent) => {
-	const infiniteScroll = event.target as HTMLIonInfiniteScrollElement;
-	
-	// Проверяем оба флага
-	if (allWorkOrdersLoaded.value || noMoreFilteredResults.value) {
-		infiniteScroll.complete();
-		infiniteScroll.disabled = true;
+	if (allWorkOrdersLoaded.value) {
+		(event.target as HTMLIonInfiniteScrollElement).complete();
+		(event.target as HTMLIonInfiniteScrollElement).disabled = true;
 		return;
 	}
 
 	try {
 		await fetchOrders();
-		// Если после загрузки все еще нет результатов, отключаем infinite scroll
-		if (results.value.length === 0) {
-			infiniteScroll.disabled = true;
-		}
 	} catch (error) {
 		console.error("Error loading more tasks:", error);
 	} finally {
-		infiniteScroll.complete();
+		(event.target as HTMLIonInfiniteScrollElement).complete();
 	}
 };
 
@@ -569,6 +532,12 @@ const toggleFilterModal = () => {
 
 // Добавляем реактивные переменные для хранения дат
 const startDate = ref<string[]>([]);
+
+// Объявляем объект для хранения дат
+const dateRange = ref({
+	start_date: null as number | null,
+	end_date: null as number | null
+});
 
 // Функция для обработки изменения даты
 const handleDateChange = (event: CustomEvent) => {

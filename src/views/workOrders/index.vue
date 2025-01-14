@@ -14,8 +14,15 @@
 			</ion-toolbar>
 
 			<ion-toolbar v-if="!connectionError">
+				<Test :results="results" 
+					  :all-orders="workOrders" 
+					  :is-filter-active="isDateFilterActive"
+					  :active-date-range="dateRange"
+					  @update:results="updateResults"
+					  @update:isFilterActive="(value) => isDateFilterActive = value"
+					  @update:activeDateRange="(range) => dateRange = range" />
 				<ion-searchbar inputmode="search" class="custom" placeholder="Поиск" :debounce="350" :animated="true"
-							   @ionInput="handleInput($event)"></ion-searchbar>
+							   @ionInput="handleInput"></ion-searchbar>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content :fullscreen="true">
@@ -219,9 +226,14 @@ import { cogOutline, notificationsOutline, add, key } from "ionicons/icons";
 
 import { useRouter } from "vue-router";
 
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 
 import { chevronDownCircleOutline } from "ionicons/icons";
+
+import Test from "@/views/orders/my/test.vue";
+
+import { SearchbarCustomEvent } from '@ionic/vue';
+import type { RefresherCustomEvent } from '@ionic/vue';
 
 const router = useRouter();
 
@@ -312,15 +324,16 @@ function sortTasksByDateCreated(tasks: Task[]): Task[] {
 	return tasks.sort((a, b) => a.dateCreated - b.dateCreated);
 }
 
-function handleChange($event) {
-	selectedStatuses = event.detail.value;
-
-	if (selectedStatuses.length == 0) {
-		fetchTasks();
-	} else {
-		filterTasksByStates();
+function handleChange(event: CustomEvent) {
+	const value = event.detail?.value;
+	if (Array.isArray(value)) {
+		selectedStatuses = value;
+		if (selectedStatuses.length === 0) {
+			fetchTasks();
+		} else {
+			filterTasksByStates();
+		}
 	}
-	console.log("Selected statuses array:", selectedStatuses);
 }
 
 const fetchTasks = async () => {
@@ -331,12 +344,13 @@ const fetchTasks = async () => {
 	let task_data;
 
 	try {
-		task_data = await WorkOrderService.GetWorkOrders(store.getters["getUserId"] + 1);
+		task_data = await WorkOrderService.GetWorkOrders(store.getters["getUserId"] + 1, start.value, limit.value);
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {
 		loading.value = false;
 	}
+	console.log("task_data:", task_data);
 
 	if (task_data && task_data.length > 0) {
 		workOrders.value.push(...task_data);
@@ -355,11 +369,18 @@ onMounted(() => {
 	fetchTasks();
 });
 
-const handleRefresh = (event: CustomEvent) => {
+const handleRefresh = (event: RefresherCustomEvent) => {
 	setTimeout(() => {
 		tasks.value = [];
 		results.value = [];
+		workOrders.value = [];
 		start.value = 0;
+		allWorkOrdersLoaded.value = false;
+		isDateFilterActive.value = false;
+		dateRange.value = {
+			start_date: null,
+			end_date: null
+		};
 		fetchTasks();
 		loading.value = false;
 		event.target.complete();
@@ -370,21 +391,51 @@ const loadMoreTasks = async (event: CustomEvent) => {
 	if (allWorkOrdersLoaded.value) {
 		(event.target as HTMLIonInfiniteScrollElement).complete();
 		(event.target as HTMLIonInfiniteScrollElement).disabled = true;
+		return;
+	}
+
+	if (search_string.value !== "") {
+		await loadMoreFromSearch();
 	} else {
-		if (search_string.value !== "") {
-			console.log("loading more tasks");
-			await loadMoreFromSearch();
-		} else {
-			await fetchTasks();
+		const previousLength = workOrders.value.length;
+		await fetchTasks();
 
-			if (isActiveFilter) {
+		// Проверяем, есть ли новые заказ-наряды после fetchTasks
+		const hasNewOrders = workOrders.value.length > previousLength;
 
-				filterTasksByStates();
+		// Если активен фильтр по дате
+		if (isDateFilterActive.value && dateRange.value.start_date && dateRange.value.end_date) {
+			const newOrders = workOrders.value.slice(previousLength);
+			
+			// Проверяем, есть ли среди новых заказ-нарядов те, что попадают в диапазон дат
+			const hasOrdersInDateRange = newOrders.some(order => 
+				order.date >= dateRange.value.start_date! && 
+				order.date <= dateRange.value.end_date!
+			);
+
+			// Если новых заказ-нарядов нет или ни один не попадает в диапазон дат
+			if (!hasNewOrders || !hasOrdersInDateRange) {
+				console.log('No more orders in date range');
+				allWorkOrdersLoaded.value = true;
+				(event.target as HTMLIonInfiniteScrollElement).disabled = true;
 			}
-			(event.target as HTMLIonInfiniteScrollElement).complete();
+
+			// Фильтруем все заказ-наряды по дате
+			if (hasNewOrders) {
+				const filteredOrders = workOrders.value.filter(order => 
+					order.date >= dateRange.value.start_date! && 
+					order.date <= dateRange.value.end_date!
+				);
+				results.value = filteredOrders;
+			}
 		}
 
+		if (isActiveFilter) {
+			filterTasksByStates();
+		}
 	}
+
+	(event.target as HTMLIonInfiniteScrollElement).complete();
 };
 
 const formatDateToLocaleString = (
@@ -407,50 +458,35 @@ const formatDateToLocaleString = (
 	return date.toLocaleString(locale, formatOptions);
 };
 
-const handleInput = async (event: { target: { value: string } }) => {
+const handleInput = async (event: SearchbarCustomEvent) => {
 	loading.value = true;
+	const searchValue = event.detail.value || '';
+	search_string.value = searchValue;
 
 	let order_data;
-
-	// console.log("Event target value", event.target.value)
-	search_string.value = event.target.value;
-
 	try {
-		order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, 100, event.target.value);
-		console.log("oDATA:", order_data);
+		order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, 100, searchValue);
 	} catch (error) {
 		console.error("Error:", error);
 	} finally {
 		loading.value = false;
 	}
 
-	// console.log("TASK DATA:", order_data)
-
 	if (order_data && order_data.length > 0) {
 		workOrders.value = [];
 		results.value = [];
-
 		workOrders.value.push(...order_data);
 		results.value.push(...order_data);
-
-		// console.log("Products:", workOrders.value);
 		start.value = 100;
-		console.log("we are here");
-		loading.value = false;
-		return workOrders;
 	} else {
-		console.log("we are here234");
 		allWorkOrdersLoaded.value = true;
 	}
-	;
 };
 
 const loadMoreFromSearch = async () => {
 	loading.value = true;
 
 	let order_data;
-
-
 	try {
 		order_data = await WorkOrderService.GetWorkOrdersByText(1, start.value, limit.value, search_string.value);
 		console.log("oDATA_more:", order_data);
@@ -460,23 +496,38 @@ const loadMoreFromSearch = async () => {
 		loading.value = false;
 	}
 
-	// console.log("TASK DATA:", order_data)
-
 	if (order_data && order_data.length > 0) {
-		workOrders.value.push(...order_data);
-		results.value.push(...order_data);
+		// Если активен фильтр по дате, проверяем новые заказ-наряды
+		if (isDateFilterActive.value && dateRange.value.start_date && dateRange.value.end_date) {
+			const ordersInDateRange = order_data.filter(order => 
+				order.date >= dateRange.value.start_date! && 
+				order.date <= dateRange.value.end_date!
+			);
 
-		// console.log("Products:", workOrders.value);
+			if (ordersInDateRange.length === 0) {
+				allWorkOrdersLoaded.value = true;
+				return workOrders;
+			}
+
+			workOrders.value.push(...order_data);
+			const allFilteredOrders = workOrders.value.filter(order => 
+				order.date >= dateRange.value.start_date! && 
+				order.date <= dateRange.value.end_date!
+			);
+			results.value = allFilteredOrders;
+		} else {
+			workOrders.value.push(...order_data);
+			results.value.push(...order_data);
+		}
+
 		start.value += limit.value;
 		console.log("start.value:", start.value);
 		console.log("limit.value:", limit.value);
-		loading.value = false;
-
 	} else {
-		// search_string.value = "";
+		allWorkOrdersLoaded.value = true;
 	}
+	
 	return workOrders;
-
 };
 
 const filterTasksByStates = () => {
@@ -494,16 +545,40 @@ const filterTasksByStates = () => {
 
 const filterOnlyForMe = () => {
 	loading.value = true;
-	console.log(store.getters["getUserId"]);
-	results.value = tasks.value.filter(
-		(task) => task.authorId === store.getters["getUserId"],
+	results.value = workOrders.value.filter(
+		(order) => order.authorId === store.getters["getUserId"]
 	);
 	loading.value = false;
 };
 
 const resetFilters = () => {
-	results.value = tasks.value;
+	results.value = workOrders.value;
 };
+
+const isDateFilterActive = ref(false);
+const dateRange = ref<{
+	start_date: number | null;
+	end_date: number | null;
+}>({
+	start_date: null,
+	end_date: null
+});
+
+const updateResults = (newResults: WorkOrder[]) => {
+	console.log('Updating results:', newResults); // Для отладки
+	results.value = [...newResults]; // Создаем новый массив для реактивного обновления
+};
+
+watch(() => dateRange.value, (newRange) => {
+	console.log('Date range changed:', newRange); // Для отладки
+	if (newRange.start_date && newRange.end_date) {
+		const filteredOrders = workOrders.value.filter(order => 
+			order.date >= newRange.start_date! && 
+			order.date <= newRange.end_date!
+		);
+		results.value = filteredOrders;
+	}
+}, { deep: true });
 </script>
 
 <style scoped>

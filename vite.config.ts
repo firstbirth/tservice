@@ -11,7 +11,7 @@ export default defineConfig({
 		legacy(),
 		VitePWA(
 			{
-				registerType: "autoUpdate"
+				registerType: "autoUpdate",
 			}
 		)
 	],
